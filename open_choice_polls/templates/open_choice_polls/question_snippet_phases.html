@@ -19,7 +19,7 @@
                 {% endif %}
 
                 <div class="card-body">
-                    <ul class="list-group">
+                    <ul class="list-group list-group-flush">
                         <li class="list-group-item">
                             <div class="css-tooltip"><strong>{{ question.collection_start_date }}</strong>
                                 <span class="css-tooltiptext">{{ question.collection_start_date|naturaltime }}</span>
@@ -70,7 +70,7 @@
                 {% endif %}
 
                 <div class="card-body">
-                    <ul class="list-group">
+                    <ul class="list-group list-group-flush">
                         <li class="list-group-item">
                             <div class="css-tooltip"><strong>{{ question.voting_start_date }}</strong>
                                 <span class="css-tooltiptext">{{ question.voting_start_date|naturaltime }}</span>
@@ -85,7 +85,6 @@
                             {% trans "Votes allowed per person: " %}
                             <strong>{{ question.votes_per_session }}</strong>
                         </li>
-
 
                         {% if question.show_voting_results %}
                             <li class="list-group-item">
