@@ -1,0 +1,132 @@
+{% load i18n humanize markdownify %}
+
+<div class="row">
+    <div class="col">
+        <div class="card-deck">
+            <div class="card border-dark mb-3">
+                {% if question.collection_is_active %}
+                    <div class="card-header bg-success">
+                        <strong>{% trans "Collection Phase" %}</strong> - {% trans "is active" %}
+                    </div>
+                {% elif question.collection_is_in_past %}
+                    <div class="card-header bg-warning">
+                        <strong>{% trans "Collection Phase" %}</strong> - {% trans "is in the past" %}
+                    </div>
+                {% elif question.collection_is_in_future %}
+                    <div class="card-header bg-primary">
+                        <strong>{% trans "Collection Phase" %}</strong> - {% trans "is in the future" %}
+                    </div>
+                {% endif %}
+
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <div class="css-tooltip"><strong>{{ question.collection_start_date }}</strong>
+                                <span class="css-tooltiptext">{{ question.collection_start_date|naturaltime }}</span>
+                            </div>
+                            -
+                            <div class="css-tooltip"><strong>{{ question.collection_end_date }}</strong>
+                                <span class="css-tooltiptext">{{ question.collection_end_date|naturaltime }}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-footer text-right">
+                    {% if question.collection_is_active %}
+                        <a href="{% url 'open_choice_polls:choices' slug=question.slug id=question.id %}"
+                           class="btn btn-success mb-1">{% trans "Add Suggestions" %}</a>
+                        <a href="{% url 'open_choice_polls:choices' slug=question.slug id=question.id %}"
+                           class="btn btn-info mb-1">{% trans "Collection Results" %}</a>
+                    {% elif question.collection_is_in_past %}
+                        <a href="{% url 'open_choice_polls:choices' slug=question.slug id=question.id %}"
+                           class="btn btn-secondary mb-1 disabled">{% trans "Add Suggestions" %}</a>
+                        <a href="{% url 'open_choice_polls:choices' slug=question.slug id=question.id %}"
+                           class="btn btn-info mb-1">{% trans "Collection Results" %}</a>
+                    {% elif question.collection_is_in_future %}
+                        <a href="{% url 'open_choice_polls:choices' slug=question.slug id=question.id %}"
+                           class="btn btn-secondary mb-1 disabled">{% trans "Add Suggestions" %}</a>
+                        <a href="{% url 'open_choice_polls:choices' slug=question.slug id=question.id %}"
+                           class="btn btn-secondary mb-1 disabled">{% trans "Collection Results" %}</a>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="card border-dark mb-3">
+
+                {% if question.voting_is_active %}
+                    <div class="card-header bg-success">
+                        <strong>{% trans "Voting Phase" %}</strong> - {% trans "is active" %}
+                    </div>
+                {% elif question.voting_is_in_past %}
+                    <div class="card-header bg-warning">
+                        <strong>{% trans "Voting Phase" %}</strong> - {% trans "is in the past" %}
+                    </div>
+                {% elif question.voting_is_in_future %}
+                    <div class="card-header bg-primary">
+                        <strong>{% trans "Voting Phase" %}</strong> - {% trans "is in the future" %}
+                    </div>
+                {% endif %}
+
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <div class="css-tooltip"><strong>{{ question.voting_start_date }}</strong>
+                                <span class="css-tooltiptext">{{ question.voting_start_date|naturaltime }}</span>
+                            </div>
+                            -
+                            <div class="css-tooltip"><strong>{{ question.voting_end_date }}</strong>
+                                <span class="css-tooltiptext">{{ question.voting_end_date|naturaltime }}</span>
+                            </div>
+                        </li>
+
+                        <li class="list-group-item">
+                            {% trans "Votes allowed per person: " %}
+                            <strong>{{ question.votes_per_session }}</strong>
+                        </li>
+
+
+                        {% if question.show_voting_results %}
+                            <li class="list-group-item">
+                                Results will be shown immediately
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">
+                                Results will be shown after vote ends
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="card-footer text-right">
+
+                    {% if question.voting_is_active %}
+                        <a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}"
+                           class="btn btn-success mb-1">{% trans "Cast Vote" %}</a>
+
+                        {% if question.show_voting_results %}
+                            <a href="{% url 'open_choice_polls:results' slug=question.slug id=question.id %}"
+                               class="btn btn-info mb-1">{% trans "Vote Results" %}</a>
+                        {% else %}
+                            <a href="{% url 'open_choice_polls:results' slug=question.slug id=question.id %}"
+                               class="btn btn-secondary mb-1 disabled">{% trans "Vote Results" %}</a>
+                        {% endif %}
+
+                    {% elif question.voting_is_in_past %}
+                        <a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}"
+                           class="btn btn-secondary mb-1 disabled">{% trans "Cast Vote" %}</a>
+                        <a href="{% url 'open_choice_polls:results' slug=question.slug id=question.id %}"
+                           class="btn btn-info mb-1">{% trans "Vote Results" %}</a>
+                    {% elif question.voting_is_in_future %}
+                        <a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}"
+                           class="btn btn-secondary mb-1 disabled">{% trans "Cast Vote" %}</a>
+                        <a href="{% url 'open_choice_polls:results' slug=question.slug id=question.id %}"
+                           class="btn btn-secondary mb-1 disabled">{% trans "Vote Results" %}</a>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+{% extends "open_choice_polls/base.html" %}
+
+{% load i18n humanize markdownify %}
+
+{% block title %}
+    {# Translators: Title on Main Page #}
+    {% trans "Home" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        {% include "open_choice_polls/question_snippet_top.html" with question=question %}
+        {% include "open_choice_polls/question_snippet_phases.html" with question=question %}
+
+    </div>
+
+{% endblock %}

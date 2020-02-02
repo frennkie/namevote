@@ -1,0 +1,49 @@
+{% extends "open_choice_polls/base.html" %}
+
+{% load i18n humanize %}
+
+{% block title %}
+    {# Translators: Title on Main Page #}
+    {% trans "Home" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="container">
+
+        {% for question in questions %}
+
+            {% if not forloop.first %}
+                <hr>
+            {% endif %}
+
+            {% include "open_choice_polls/question_snippet_top.html" with  question=question %}
+            {% include "open_choice_polls/question_snippet_phases.html" with question=question %}
+
+        {% empty %}
+
+            <div class="row justify-content-center">
+                <div class="col">
+                    <div class="card border-dark mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">No polls are available.</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endfor %}
+
+        <!--
+        {% load tz %}
+        {% get_current_timezone as TIME_ZONE %}
+        {% timezone "Europe/Berlin" %}Berlin time: {{ now }}{% endtimezone %}
+        {% timezone None %}Server time: {{ now }}{% endtimezone %} ({{ TIME_ZONE }})
+        -->
+
+    </div>
+
+
+{% endblock %}

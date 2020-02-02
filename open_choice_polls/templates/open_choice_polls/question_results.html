@@ -1,0 +1,98 @@
+{% extends "open_choice_polls/base.html" %}
+
+{% load humanize i18n poll_tags static %}
+
+{% block title %}
+    {# Translators: Title on Results Page #}
+    {% trans "Results" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'open_choice_polls/css/chart.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+
+        {% include "open_choice_polls/question_snippet_top.html" with question=question %}
+
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary mb-3">
+
+                    <div class="card-header">
+                        <h5>Total Votes: {{ question.total_votes }}</h5>
+                    </div>
+
+                    <div class="card-body">
+
+
+                        {% if question.voting_is_active %}
+                            {% if question.show_voting_results %}
+
+                                <div class="charts">
+                                    {% for choice in choices_approved %}
+                                        <h5>{% percentage question choice as choice_percentage %}
+                                            {{ choice.choice_text }} ({{ choice.votes }}
+                                            vote{{ choice.votes|pluralize }})</h5>
+                                        <div class="charts__chart chart--lg"
+                                             data-percent="{{ choice_percentage|floatformat:2 }}%"
+                                             style="width: {{ choice_percentage|floatformat:2 }}%"></div>
+                                        <br>
+                                    {% empty %}
+                                        <h5 class="text-danger">No Choices were available.</h5>
+                                    {% endfor %}
+                                </div>
+
+                            {% else %}
+                                <h5 class="text-primary">Results will be available after Vote</h5>
+                                <div class="css-tooltip">ends {{ question.voting_end_date|naturaltime }}
+                                    <span class="css-tooltiptext">{{ question.voting_end_date }}</span>
+                                </div>
+                            {% endif %}
+
+                        {% else %}
+                            <div class="charts">
+                                {% for choice in choices_approved %}
+                                    {% percentage question choice as choice_percentage %}
+                                    {{ choice.choice_text }} ({{ choice.votes }} vote{{ choice.votes|pluralize }})
+                                    <div class="charts__chart chart--lg"
+                                         data-percent="{{ choice_percentage|floatformat:2 }}%"
+                                         style="width: {{ choice_percentage|floatformat:2 }}%"></div>
+                                {% empty %}
+                                    <h5 class="text-danger">No Choices were available.</h5>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="card-footer">
+                        {% if question.voting_is_active %}
+                            You have voted <b>{{ num_votes_cast }}</b>
+                            of <b>{{ question.votes_per_session }}</b> time{{ question.votes_per_session|pluralize }}
+                            {% if num_votes_cast < question.votes_per_session %}
+                                -<a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}">Vote
+                                again? </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col text-danger">
+                {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+            </div>
+        </div>
+
+        {% if question.voting_is_active and num_votes_cast < question.votes_per_session %}
+            {% include "open_choice_polls/question_snippet_vote.html" with question=question %}
+        {% endif %}
+
+    </div>
+
+{% endblock %}

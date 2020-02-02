@@ -1,0 +1,25 @@
+{% extends "open_choice_polls/base.html" %}
+
+{% load i18n markdownify %}
+
+{% block title %}
+    {# Translators: Title on Vote Page #}
+    {% trans "Vote" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        {% include "open_choice_polls/question_snippet_top.html" with question=question %}
+
+        {% include "open_choice_polls/question_snippet_vote.html" with question=question %}
+
+        <div class="row">
+            <div class="col text-danger">
+                {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,37 @@
+<div class="row">
+    <div class="col">
+        <div class="card border-secondary mb-3">
+
+            <div class="card-header">
+                <h5>Vote for your favorite</h5>
+            </div>
+
+            <div class="card-body">
+                {% if question.voting_is_active %}
+
+                    {% if choices_approved %}
+                        <form action="{% url 'open_choice_polls:vote' slug=question.slug id=question.id %}"
+                              method="post">
+                            {% csrf_token %}
+                            {% for choice in choices_approved %}
+                                <input type="radio" name="choice" id="choice{{ forloop.counter }}"
+                                       value="{{ choice.id }}">
+                                <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+                            {% endfor %}
+                            <input class="btn btn-primary" type="submit"
+                                   value="Vote ({{ num_votes_cast|add:"1" }} of {{ question.votes_per_session }})">
+                        </form>
+
+                    {% else %}
+                        <h5 class="text-danger">Sorry - no Voting! There are no choices available.</h5>
+                    {% endif %}
+
+                {% elif question.voting_is_in_past %}
+                    <h5 class="text-danger">Voting Phase is over.</h5>
+                {% elif question.voting_is_active %}
+                    <h5 class="text-danger">Voting Phase has not started yet.</h5>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

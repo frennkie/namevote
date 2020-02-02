@@ -1,0 +1,240 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-02-02 20:57+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\namevote\settings.py:167
+msgid "German"
+msgstr "Deutsch"
+
+#: .\namevote\settings.py:168
+msgid "English"
+msgstr "Englisch"
+
+#: .\open_choice_polls\admin.py:98
+msgid "Review Status: Approve"
+msgstr ""
+
+#: .\open_choice_polls\admin.py:108
+msgid "Review Status: Reject"
+msgstr ""
+
+#: .\open_choice_polls\admin.py:118
+msgid "Review Status: Reset"
+msgstr ""
+
+#: .\open_choice_polls\admin.py:128
+msgid "Votes: Reset to 0"
+msgstr ""
+
+#: .\open_choice_polls\apps.py:7
+msgid "Django Open Choice Polls"
+msgstr ""
+
+#: .\open_choice_polls\models.py:29
+msgid "Description (with basic markdown support)"
+msgstr ""
+
+#: .\open_choice_polls\models.py:31
+msgid "date created"
+msgstr ""
+
+#: .\open_choice_polls\models.py:33
+msgid "Start Collection Phase"
+msgstr ""
+
+#: .\open_choice_polls\models.py:35
+msgid "End Collection Phase"
+msgstr ""
+
+#: .\open_choice_polls\models.py:38
+msgid "Start Voting Phase"
+msgstr ""
+
+#: .\open_choice_polls\models.py:40
+msgid "End Voting Phase"
+msgstr ""
+
+#: .\open_choice_polls\models.py:43
+msgid "is visible"
+msgstr ""
+
+#: .\open_choice_polls\models.py:45
+msgid "show approved choices"
+msgstr ""
+
+#: .\open_choice_polls\models.py:46
+msgid "show unchecked choices"
+msgstr ""
+
+#: .\open_choice_polls\models.py:47
+msgid "show rejected choices"
+msgstr ""
+
+#: .\open_choice_polls\models.py:49
+msgid "show voting results before vote ends"
+msgstr ""
+
+#: .\open_choice_polls\models.py:51
+msgid "number of votes allowed per (cookie-based session)"
+msgstr ""
+
+#: .\open_choice_polls\models.py:64
+msgid "Collection is active?"
+msgstr ""
+
+#: .\open_choice_polls\models.py:70
+msgid "Collection is in past?"
+msgstr ""
+
+#: .\open_choice_polls\models.py:76
+msgid "Collection is in future?"
+msgstr ""
+
+#: .\open_choice_polls\models.py:80
+msgid "Collection duration"
+msgstr ""
+
+#: .\open_choice_polls\models.py:89
+msgid "Voting is active?"
+msgstr ""
+
+#: .\open_choice_polls\models.py:95
+msgid "Voting is in past?"
+msgstr ""
+
+#: .\open_choice_polls\models.py:101
+msgid "Voting is in future?"
+msgstr ""
+
+#: .\open_choice_polls\models.py:105
+msgid "Voting duration"
+msgstr ""
+
+#: .\open_choice_polls\models.py:189
+msgid "approved"
+msgstr ""
+
+#: .\open_choice_polls\models.py:190
+msgid "not yet reviewed"
+msgstr ""
+
+#: .\open_choice_polls\models.py:191
+msgid "rejected"
+msgstr ""
+
+#: .\open_choice_polls\models.py:193
+msgid "review status"
+msgstr ""
+
+#. Translators: Title on View/Add Page
+#: .\open_choice_polls\templates\open_choice_polls\question_add_choice.html:7
+msgid "Choices"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_add_choice.html:64
+msgid "Approved"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_add_choice.html:76
+msgid "Not yet reviewed"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_add_choice.html:89
+msgid "Rejected"
+msgstr ""
+
+#. Translators: Title on Main Page
+#: .\open_choice_polls\templates\open_choice_polls\question_detail.html:7
+#: .\open_choice_polls\templates\open_choice_polls\question_list.html:7
+msgid "Home"
+msgstr ""
+
+#. Translators: Title on Vote Page
+#: .\open_choice_polls\templates\open_choice_polls\question_enter_vote.html:7
+msgid "Vote"
+msgstr ""
+
+#. Translators: Title on Results Page
+#: .\open_choice_polls\templates\open_choice_polls\question_results.html:7
+msgid "Results"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:9
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:13
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:17
+msgid "Collection Phase"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:9
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:60
+msgid "is active"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:13
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:64
+msgid "is in the past"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:17
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:68
+msgid "is in the future"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:38
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:43
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:48
+msgid "Add Suggestions"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:40
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:45
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:50
+msgid "Collection Results"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:60
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:64
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:68
+msgid "Voting Phase"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:85
+msgid "Votes allowed per person: "
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:106
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:118
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:123
+msgid "Cast Vote"
+msgstr ""
+
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:110
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:113
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:120
+#: .\open_choice_polls\templates\open_choice_polls\question_snippet_phases.html:125
+msgid "Vote Results"
+msgstr ""
+
+#: .\open_choice_polls\views.py:117
+msgid "Choice is empty"
+msgstr ""
+
+#: .\open_choice_polls\views.py:123
+msgid "Failed Regex. Hint: {}"
+msgstr ""

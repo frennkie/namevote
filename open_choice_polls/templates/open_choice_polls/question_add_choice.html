@@ -1,0 +1,104 @@
+{% extends "open_choice_polls/base.html" %}
+
+{% load i18n markdownify %}
+
+{% block title %}
+    {# Translators: Title on View/Add Page #}
+    {% trans "Choices" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        {% include "open_choice_polls/question_snippet_top.html" with question=question %}
+
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary mb-3">
+
+                    {% if question.collection_is_active %}
+                        <div class="card-header">
+                            <h5>Add your suggestion</h5>
+                        </div>
+
+                        <div class="card-body">
+                            <form action="{% url 'open_choice_polls:add_choice' slug=question.slug id=question.id %}"
+                                  method="post">
+                                {% csrf_token %}
+                                {{ form.as_p }}
+                                <input class="btn btn-primary" type="submit" value="Add">
+                            </form>
+                        </div>
+
+                    {% elif question.collection_is_in_past %}
+                        <div class="card-header">
+                            <h5>Collection Phase is over.</h5>
+                        </div>
+
+                    {% elif question.collection_is_in_future %}
+                        <div class="card-header">
+                            <h5>Collection Phase has not started yet.</h5>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col text-danger">
+                {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+
+                <div class="card-deck">
+                    {% if question.show_choices_approved %}
+                        <div class="card border-success mb-3">
+                            <ul class="list-group">
+                                <li class="list-group-item list-group-item-success">{% trans "Approved" %}</li>
+                                {% for choice in choices_approved %}
+                                    <li class="list-group-item">{{ choice.choice_text }}</li>
+                                {% empty %}
+                                    <li class="list-group-item list-group-item-light">No Entries.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    {% if question.show_choices_open %}
+                        <div class="card border-dark mb-3">
+                            <ul class="list-group">
+                                <li class="list-group-item list-group-item-secondary">{% trans "Not yet reviewed" %}</li>
+                                {% for choice in choices_open %}
+                                    <li class="list-group-item">{{ choice.choice_text }}</li>
+                                {% empty %}
+                                    <li class="list-group-item list-group-item-light">No Entries.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    {% if question.show_choices_rejected %}
+                        <div class="card border-danger mb-3">
+
+                            <ul class="list-group">
+                                <li class="list-group-item list-group-item-danger">{% trans "Rejected" %}</li>
+                                {% for choice in choices_rejected %}
+                                    <li class="list-group-item">{{ choice.choice_text }}</li>
+                                {% empty %}
+                                    <li class="list-group-item list-group-item-light">No Entries.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}

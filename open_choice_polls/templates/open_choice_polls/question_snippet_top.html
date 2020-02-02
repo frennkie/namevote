@@ -1,0 +1,17 @@
+{% load markdownify %}
+
+<div class="row justify-content-center">
+    <div class="col">
+        <div class="card border-secondary mb-3">
+            <div class="card-header text-white bg-dark">
+                <a href="{% url 'open_choice_polls:question-detail' slug=question.slug id=question.id %}"
+                   class="text-light"><h5>{{ question.number_text }}</h5></a>
+            </div>
+            {% if question.description %}
+                <div class="card-body">
+                    <div class="card-title">{{ question.description|markdownify }}</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
