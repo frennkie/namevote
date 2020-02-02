@@ -21,11 +21,13 @@
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">
-                            <div class="css-tooltip"><strong>{{ question.collection_start_date }}</strong>
+                            <div class="css-tooltip">{% trans "From" %}: <strong>{{ question.collection_start_date }}</strong>
                                 <span class="css-tooltiptext">{{ question.collection_start_date|naturaltime }}</span>
                             </div>
-                            -
-                            <div class="css-tooltip"><strong>{{ question.collection_end_date }}</strong>
+                        </li>
+
+                        <li class="list-group-item text-right">
+                            <div class="css-tooltip">{% trans "Till" %}: <strong>{{ question.collection_end_date }}</strong>
                                 <span class="css-tooltiptext">{{ question.collection_end_date|naturaltime }}</span>
                             </div>
                         </li>
@@ -72,11 +74,13 @@
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">
-                            <div class="css-tooltip"><strong>{{ question.voting_start_date }}</strong>
+                            <div class="css-tooltip">{% trans "From" %}: <strong>{{ question.voting_start_date }}</strong>
                                 <span class="css-tooltiptext">{{ question.voting_start_date|naturaltime }}</span>
                             </div>
-                            -
-                            <div class="css-tooltip"><strong>{{ question.voting_end_date }}</strong>
+                        </li>
+
+                        <li class="list-group-item text-right">
+                            <div class="css-tooltip">{% trans "Till" %}: <strong>{{ question.voting_end_date }}</strong>
                                 <span class="css-tooltiptext">{{ question.voting_end_date|naturaltime }}</span>
                             </div>
                         </li>
