@@ -5,15 +5,15 @@
         <div class="card-deck">
             <div class="card border-dark mb-3">
                 {% if question.collection_is_active %}
-                    <div class="card-header bg-success">
+                    <div class="card-header text-white bg-success">
                         <strong>{% trans "Collection Phase" %}</strong> - {% trans "is active" %}
                     </div>
                 {% elif question.collection_is_in_past %}
-                    <div class="card-header bg-warning">
+                    <div class="card-header text-whitebg-warning">
                         <strong>{% trans "Collection Phase" %}</strong> - {% trans "is in the past" %}
                     </div>
                 {% elif question.collection_is_in_future %}
-                    <div class="card-header bg-primary">
+                    <div class="card-header text-white bg-primary">
                         <strong>{% trans "Collection Phase" %}</strong> - {% trans "is in the future" %}
                     </div>
                 {% endif %}
@@ -56,15 +56,15 @@
             <div class="card border-dark mb-3">
 
                 {% if question.voting_is_active %}
-                    <div class="card-header bg-success">
+                    <div class="card-header text-white bg-success">
                         <strong>{% trans "Voting Phase" %}</strong> - {% trans "is active" %}
                     </div>
                 {% elif question.voting_is_in_past %}
-                    <div class="card-header bg-warning">
+                    <div class="card-header text-white bg-warning">
                         <strong>{% trans "Voting Phase" %}</strong> - {% trans "is in the past" %}
                     </div>
                 {% elif question.voting_is_in_future %}
-                    <div class="card-header bg-primary">
+                    <div class="card-header text-white bg-primary">
                         <strong>{% trans "Voting Phase" %}</strong> - {% trans "is in the future" %}
                     </div>
                 {% endif %}
