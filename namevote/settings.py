@@ -98,6 +98,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'baipw.middleware.BasicAuthIPWhitelistMiddleware',
 ]
 
 ROOT_URLCONF = 'namevote.urls'
@@ -200,3 +201,11 @@ MARKDOWNIFY_WHITELIST_TAGS = [
     'strong',
     'ul'
 ]
+
+BASIC_AUTH_LOGIN = 'user'
+BASIC_AUTH_PASSWORD = '<override-this>'
+BASIC_AUTH_WHITELISTED_IP_NETWORKS = [
+    '127.0.0.1/32',
+]
+
+BASIC_AUTH_RESPONSE_TEMPLATE = 'open_choice_polls/401.html'
