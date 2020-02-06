@@ -67,7 +67,7 @@ class EnterVoteView(generic.DetailView):
         # Number of votes, as counted in the session variable.
         context['num_votes_cast'] = get_session_num_votes_cast(self.request.session, self.object.id)
 
-        choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED).order_by('choice_text')
+        choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED).order_by(Lower('choice_text'))
         context['choices_approved'] = choices_approved
         return context
 
@@ -99,9 +99,9 @@ class AddChoiceView(generic.DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        context['choices_approved'] = Choice.approved.filter(question=self.object.id).order_by('choice_text')
-        context['choices_open'] = Choice.open.filter(question=self.object.id).order_by('choice_text')
-        context['choices_rejected'] = Choice.rejected.filter(question=self.object.id).order_by('choice_text')
+        context['choices_approved'] = Choice.approved.filter(question=self.object.id).order_by(Lower('choice_text'))
+        context['choices_open'] = Choice.open.filter(question=self.object.id).order_by(Lower('choice_text'))
+        context['choices_rejected'] = Choice.rejected.filter(question=self.object.id).order_by(Lower('choice_text'))
 
         context['form'] = ChoiceForm
 
@@ -139,9 +139,9 @@ def add_choice(request, id, slug=None, *args, **kwargs):
 
     # Redisplay the question voting form.
     return render(request, 'open_choice_polls/question_add_choice.html', {
-        'choices_approved': Choice.approved.filter(question=question.id).order_by('choice_text'),
-        'choices_open': Choice.open.filter(question=question.id).order_by('choice_text'),
-        'choices_rejected': Choice.rejected.filter(question=question.id).order_by('choice_text'),
+        'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
+        'choices_open': Choice.open.filter(question=question.id).order_by(Lower('choice_text')),
+        'choices_rejected': Choice.rejected.filter(question=question.id).order_by(Lower('choice_text')),
         'question': question,
         'form': ChoiceForm,
         'error_message': error_message,
@@ -169,9 +169,9 @@ def vote(request, id, slug=None, *args, **kwargs):
     except (KeyError, Choice.DoesNotExist):
         # Redisplay the question voting form.
         return render(request, 'open_choice_polls/question_enter_vote.html', {
-            'choices_approved': Choice.approved.filter(question=question.id).order_by('choice_text'),
-            'choices_open': Choice.open.filter(question=question.id).order_by('choice_text'),
-            'choices_rejected': Choice.rejected.filter(question=question.id).order_by('choice_text'),
+            'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
+            'choices_open': Choice.open.filter(question=question.id).order_by(Lower('choice_text')),
+            'choices_rejected': Choice.rejected.filter(question=question.id).order_by(Lower('choice_text')),
             'num_votes_cast': get_session_num_votes_cast(request.session, question.id),
             'question': question,
             'error_message': "You didn't select a choice.",
@@ -180,7 +180,7 @@ def vote(request, id, slug=None, *args, **kwargs):
         # check whether allowed votes (of cookie-based session) is exceeded
         if get_session_num_votes_cast(request.session, question.id) >= question.votes_per_session:
             return render(request, 'open_choice_polls/question_results.html', {
-                'choices_approved': Choice.approved.filter(question=question.id).order_by('choice_text'),
+                'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
                 'num_votes_cast': get_session_num_votes_cast(request.session, question.id),
                 'question': question,
                 'error_message': "Sorry - you have already used up all votes",
