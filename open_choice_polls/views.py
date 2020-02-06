@@ -1,6 +1,6 @@
 import re
 
-from django.core.exceptions import MultipleObjectsReturned#
+from django.core.exceptions import MultipleObjectsReturned
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponseRedirect
