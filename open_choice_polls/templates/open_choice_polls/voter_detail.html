@@ -1,0 +1,19 @@
+{% extends "open_choice_polls/base.html" %}
+
+{% load i18n %}
+
+{% block title %}
+    {# Translators: Title on Main Page #}
+    {% trans "Voter Details" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        {% include "open_choice_polls/voter_snippet_data.html" %}
+
+    </div>
+
+{% endblock %}

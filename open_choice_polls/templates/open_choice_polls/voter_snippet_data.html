@@ -1,0 +1,43 @@
+{% load i18n %}
+
+<div class="row justify-content-center">
+    <div class="col">
+
+        <div class="card border-secondary mb-3">
+            <div class="card-header text-white bg-dark">
+                <h5>{{ user.username }}</h5>
+            </div>
+
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        {% trans "Id" %}: {{ user.id }}
+                    </li>
+
+                    <li class="list-group-item">
+                        {% trans "Is Voter" %}:
+                        {% if user.voter.is_voter %}
+                            <i class="fas fa-check-circle"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle"></i>
+                        {% endif %}
+                    </li>
+
+                    <li class="list-group-item">
+                        {% trans "Is Enrolled" %}:
+                        {% if user.voter.is_enrolled %}
+                            <i class="fas fa-check-circle"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle"></i>
+                        {% endif %}
+                    </li>
+
+                    <li class="list-group-item">
+                        {% trans "Enrollment Code" %}: {{ user.voter.enrollment_code }}
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

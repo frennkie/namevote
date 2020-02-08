@@ -32,8 +32,6 @@
                                 <div class="input-group mb-3">
 
                                     {{ form.choice_text.errors }}
-
-                                    {{ form.choice_text.errors }}
                                     {{ form.choice_text }}
                                     {% if form.choice_text.help_text %}
                                         <p class="help">{{ form.choice_text.help_text|safe }}</p>
@@ -76,7 +74,9 @@
                     {% if question.show_choices_approved %}
                         <div class="card border-success mb-3">
                             <ul class="list-group">
-                                <li class="list-group-item list-group-item-success">{% trans "Approved" %} ({{ choices_approved|length }})</li>
+                                <li class="list-group-item list-group-item-success">{% trans "Approved" %}
+                                    ({{ choices_approved|length }})
+                                </li>
                                 {% for choice in choices_approved %}
                                     <li class="list-group-item">{{ choice.choice_text }}</li>
                                 {% empty %}
@@ -88,7 +88,9 @@
                     {% if question.show_choices_open %}
                         <div class="card border-dark mb-3">
                             <ul class="list-group">
-                                <li class="list-group-item list-group-item-secondary">{% trans "Not yet reviewed" %} ({{ choices_open|length }})</li>
+                                <li class="list-group-item list-group-item-secondary">{% trans "Not yet reviewed" %}
+                                    ({{ choices_open|length }})
+                                </li>
                                 {% for choice in choices_open %}
                                     <li class="list-group-item">{{ choice.choice_text }}</li>
                                 {% empty %}
@@ -101,7 +103,9 @@
                         <div class="card border-danger mb-3">
 
                             <ul class="list-group">
-                                <li class="list-group-item list-group-item-danger">{% trans "Rejected" %} ({{ choices_rejected|length }})</li>
+                                <li class="list-group-item list-group-item-danger">{% trans "Rejected" %}
+                                    ({{ choices_rejected|length }})
+                                </li>
                                 {% for choice in choices_rejected %}
                                     <li class="list-group-item">{{ choice.choice_text }}</li>
                                 {% empty %}

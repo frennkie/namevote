@@ -1,17 +1,139 @@
 import re
 
-from django.core.exceptions import MultipleObjectsReturned
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models.functions import Lower
-from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from .models import Choice, Question
-from .forms import ChoiceForm
+from .forms import ChoiceForm, SeLoginUserForm, SeLoginSignInForm, SeLoginEnrollForm
+from .models import Choice, Question, Voter
+
+
+def selogin_user(request, *args, **kwargs):
+    error_message = None
+
+    if request.method == 'POST':
+        next_ = request.POST.get('next')
+        username = request.POST.get('username', None)
+        if username:
+            return redirect('open_choice_polls:se-login-username', username=username)
+    else:
+        next_ = request.GET.get('next')
+
+    # ToDo(frennkie) use next_ ?!
+
+    form = SeLoginUserForm()
+    form.is_valid()
+
+    return render(request, 'open_choice_polls/voter_login_user.html', {
+        'form': form,
+        'error_message': error_message,
+    })
+
+
+def selogin(request, username=None, *args, **kwargs):
+    error_message = None
+    form_sign_in = None
+    form_enroll = None
+
+    if request.method == 'POST':
+        next_ = request.POST.get('next')
+
+        if request.POST.get('form') == SeLoginSignInForm.FORM_NAME:
+            form_sign_in = SeLoginSignInForm(request.POST)
+            form_sign_in.is_valid()
+
+            if not username:
+                username = form_sign_in.cleaned_data.get('username')
+            password = form_sign_in.cleaned_data.get('password')
+
+            user = authenticate(username=username, password=password)
+            if user is not None:
+
+                if user.voter.is_enrolled:
+                    login(request, user)
+
+                    if next_:
+                        return redirect(next_)
+                    else:
+                        return redirect('open_choice_polls:question-list')
+                else:
+                    error_message = "Account is not yet enrolled. Please enroll first!"
+                    form_enroll = SeLoginEnrollForm(initial={'username': username,
+                                                             'next': next_})
+                    form_sign_in = None
+
+            else:
+                error_message = "Sign in failed. Invalid username or password! Try another password again."
+
+        elif request.POST.get('form') == SeLoginEnrollForm.FORM_NAME:
+            print("enroll.......")
+
+            form_enroll = SeLoginEnrollForm(request.POST)
+            form_enroll.is_valid()
+
+            if not username:
+                username = form_enroll.cleaned_data.get('username')
+
+            try:
+                obj = User.objects.filter(voter__is_voter=True). \
+                    filter(username=username). \
+                    filter(voter__is_enrolled=False). \
+                    get()
+
+                # check given enrollment_code against DB
+                enrollment_code = form_enroll.cleaned_data.get('enrollment_code')
+                if obj.voter.enrollment_code == enrollment_code:
+
+                    # try to authenticate
+                    user = authenticate(username=username, password=enrollment_code)
+                    if user is not None:
+                        new_pw = Voter.create_new_password()
+                        user.voter.is_enrolled = True
+                        user.set_password(new_pw)
+                        user.save()
+                        error_message = 'Enrollment successful! Password has been changed. ' \
+                                        'If you close your browser or delete your cookies then you will need' \
+                                        'the new password to re-enable your voting privileges. ' \
+                                        'The new password is: {}'.format(new_pw)
+
+                        login(request, user)
+
+                        return render(request, 'open_choice_polls/voter_login.html', {
+                            'username': username,
+                            'form_sign_in': form_sign_in,
+                            'form_enroll': form_enroll,
+                            'error_message': error_message,
+                            'successful_enrollment': True,
+                        })
+
+            except ObjectDoesNotExist:
+                # Todo(frennkie) not found
+                error_message = "Invalid username or password (or User is already enrolled)"
+
+        else:
+            raise Exception("form fu")
+
+    else:
+        next_ = request.GET.get('next')
+        form_sign_in = SeLoginSignInForm(initial={'username': username, 'next': next_})
+        form_enroll = SeLoginEnrollForm(initial={'username': username, 'next': next_})
+
+    return render(request, 'open_choice_polls/voter_login.html', {
+        'username': username,
+        'form_sign_in': form_sign_in,
+        'form_enroll': form_enroll,
+        'error_message': error_message,
+
+    })
 
 
 class QuestionListView(generic.ListView):
@@ -38,12 +160,28 @@ class QuestionDetailView(generic.DetailView):
     context_object_name = 'question'
 
     def get_context_data(self, **kwargs):
-        context = super(QuestionDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['now'] = timezone.now()
         return context
 
 
-class EnterVoteView(generic.DetailView):
+class VoterDetailView(generic.DetailView):
+    template_name = 'open_choice_polls/voter_detail.html'
+    model = User
+
+    slug_field = 'id'
+    slug_url_kwarg = 'id'
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:  # superuser may be all pages
+            return User.objects.all()
+        elif self.request.user.is_authenticated:  # regular users only see their own page
+            return User.objects.filter(username=self.request.user)
+        else:  # unauthenticated callers get 404
+            return User.objects.none()
+
+
+class EnterVoteView(LoginRequiredMixin, generic.DetailView):
     model = Question
     template_name = 'open_choice_polls/question_enter_vote.html'
     query_pk_and_slug = True

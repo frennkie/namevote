@@ -1,19 +1,71 @@
-import uuid
+import random
 import re
+import uuid
+
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.text import slugify
 from django.utils.safestring import mark_safe
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
 
-from open_choice_polls.settings import OPEN_CHOICE_POLLS_QUESTION_ZFILL
+
+class Voter(models.Model):
+    class Meta:
+        ordering = ('user',)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    is_voter = models.BooleanField(default=False, editable=False,
+                                   verbose_name=_('Is Voter?'))
+    is_enrolled = models.BooleanField(default=False, editable=True,
+                                      verbose_name=_('Is Enrolled?'))
+
+    enrollment_code = models.CharField(max_length=80, blank=True, editable=False,
+                                       verbose_name=_('Enrollment Code'))
+
+    @staticmethod
+    def create_enrollment_code():
+        first = ''.join(random.choices('ABCDEFGHKMNPQRSTUVWX', k=2))
+        second = ''.join(random.choices('23456789', k=3))
+        third = ''.join(random.choices('abcdefghkmnpqrstuvwx', k=2))
+        return "{}{}{}".format(first, second, third)
+
+    @staticmethod
+    def create_new_password():
+        first = ''.join(random.choices('ABCDEFGHKMNPQRSTUVWX', k=4))
+        second = ''.join(random.choices('23456789', k=5))
+        third = ''.join(random.choices('abcdefghkmnpqrstuvwx', k=4))
+        return "{}-{}-{}".format(first, second, third)
+
+    def __repr__(self):
+        return "<{0}: {1}".format(
+            self.__class__.__name__,
+            self.user.username)
+
+    def __str__(self):
+        return self.user.username
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Voter.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if not instance.id == 1:
+        instance.voter.save()
 
 
 class Question(models.Model):
     class Meta:
-        ordering = ('-created', )
+        ordering = ('-created',)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -60,23 +112,27 @@ class Question(models.Model):
             return self.collection_start_date <= now <= self.collection_end_date
         except TypeError:
             return False
+
     collection_is_active.boolean = True
     collection_is_active.short_description = _('Collection is active?')
 
     def collection_is_in_past(self):
         now = timezone.now()
         return self.collection_start_date < now and self.collection_end_date < now
+
     collection_is_in_past.boolean = True
     collection_is_in_past.short_description = _('Collection is in past?')
 
     def collection_is_in_future(self):
         now = timezone.now()
         return now < self.collection_start_date and now < self.collection_end_date
+
     collection_is_in_future.boolean = True
     collection_is_in_future.short_description = _('Collection is in future?')
 
     def collection_duration(self):
         return self.collection_end_date - self.collection_start_date
+
     collection_duration.short_description = _('Collection duration')
 
     def voting_is_active(self):
@@ -85,23 +141,27 @@ class Question(models.Model):
             return self.voting_start_date <= now <= self.voting_end_date
         except TypeError:
             return False
+
     voting_is_active.boolean = True
     voting_is_active.short_description = _('Voting is active?')
 
     def voting_is_in_past(self):
         now = timezone.now()
         return self.voting_start_date < now and self.voting_end_date < now
+
     voting_is_in_past.boolean = True
     voting_is_in_past.short_description = _('Voting is in past?')
 
     def voting_is_in_future(self):
         now = timezone.now()
         return now < self.voting_start_date and now < self.voting_end_date
+
     voting_is_in_future.boolean = True
     voting_is_in_future.short_description = _('Voting is in future?')
 
     def voting_duration(self):
         return self.voting_end_date - self.voting_start_date
+
     voting_duration.short_description = _('Voting duration')
 
     @property
