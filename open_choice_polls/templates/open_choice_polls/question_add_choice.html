@@ -27,8 +27,23 @@
                             <form action="{% url 'open_choice_polls:add_choice' slug=question.slug id=question.id %}"
                                   method="post">
                                 {% csrf_token %}
-                                {{ form.as_p }}
-                                <input class="btn btn-primary" type="submit" value="Add">
+
+                                {{ form.non_field_errors }}
+                                <div class="input-group mb-3">
+
+                                    {{ form.choice_text.errors }}
+
+                                    {{ form.choice_text.errors }}
+                                    {{ form.choice_text }}
+                                    {% if form.choice_text.help_text %}
+                                        <p class="help">{{ form.choice_text.help_text|safe }}</p>
+                                    {% endif %}
+
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary btn-lg" type="submit">Add</button>
+                                    </div>
+                                </div>
+
                             </form>
                         </div>
 

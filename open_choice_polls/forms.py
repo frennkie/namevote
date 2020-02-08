@@ -8,7 +8,7 @@ class ChoiceForm(forms.ModelForm):
     choice_text = forms.CharField(required=True, max_length=100, label=False,
                                   widget=forms.TextInput(
                                       attrs={'placeholder': 'Enter Suggestion',
-                                             'class': 'mr-2',
+                                             'class': 'form-control',
                                              'autofocus': 'autofocus'}))
 
     class Meta:
