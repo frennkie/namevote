@@ -1,5 +1,7 @@
 import re
+from random import random as dist_random
 import uuid
+
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -15,12 +17,12 @@ from itertools import accumulate as _accumulate, repeat as _repeat
 from bisect import bisect as _bisect
 
 
-def choices(self, population, weights=None, *, cum_weights=None, k=1):
+def choices(population, weights=None, *, cum_weights=None, k=1):
     """Return a k sized list of population elements chosen with replacement.
     If the relative weights or cumulative weights are not specified,
     the selections are made with equal probability.
     """
-    random = self.random
+    random = dist_random
     n = len(population)
     if cum_weights is None:
         if weights is None:
