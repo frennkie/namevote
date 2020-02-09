@@ -59,6 +59,7 @@ def selogin(request, username=None, *args, **kwargs):
             if user is not None:
 
                 if user.is_superuser:
+                    login(request, user)
                     if next_:
                         return redirect(next_)
                     else:
