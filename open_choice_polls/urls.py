@@ -7,10 +7,10 @@ app_name = 'open_choice_polls'
 urlpatterns = [
     path('', views.QuestionListView.as_view(), name='question-list'),
 
-    path('voter/<int:id>/', views.VoterDetailView.as_view(), name='user-detail'),
+    path('voter/<username>/', views.VoterDetailView.as_view(), name='user-detail'),
 
     path('voter/selogin/', views.selogin, name='se-login'),
-    path('voter/selogin/<str:username>/', views.selogin, name='se-login-username'),
+    path('voter/selogin/<username>/', views.selogin, name='se-login-username'),
     path('voter/selogin-user/', views.selogin_user, name='se-login-user'),
 
     # not used
@@ -33,4 +33,3 @@ urlpatterns = [
     path('<slug:slug>,<uuid:id>/add_choice/', views.add_choice, name='add_choice'),
     path('<slug:slug>,<uuid:id>/vote/', views.vote, name='vote'),
 ]
-

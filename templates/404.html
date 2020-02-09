@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {% load i18n static %}
+
+    {% trans "404 Not Found - Vote" as title %}
+    <title>{{ title }}</title>
+
+
+    <link rel="stylesheet" type="text/css" href="{% static 'open_choice_polls/css/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'open_choice_polls/css/fontawesome.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'open_choice_polls/css/brands.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'open_choice_polls/css/solid.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'open_choice_polls/css/bootstrap.min.css' %}">
+
+</head>
+<body>
+
+<!-- Navbar https://code.luasoftware.com/tutorials/bootstrap/bootstrap-4-navbar-toggle-without-javascript/ -->
+<nav class="navbar navbar-expand-md navbar-light bg-light">
+
+    <a class="navbar-brand" href="/"><i class="fas fa-person-booth"></i> Anon Vote</a>
+
+    <input type="checkbox" id="css-navbar-toggler" class="d-none"/>
+    <label for="css-navbar-toggler" class="navbar-toggler" data-toggle="collapse" data-target="#css-navbar-content"
+           aria-controls="css-navbar-content" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon ml-auto"></span>
+    </label>
+</nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col">
+            <div class="card border-secondary mb-3">
+                <div class="card-header text-white bg-dark">
+                    {% trans "404 Not Found" %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

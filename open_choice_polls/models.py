@@ -47,7 +47,7 @@ class Voter(models.Model):
         return "{}-{}-{}".format(first, second, third)
 
     def __repr__(self):
-        return "<{0}: {1}".format(
+        return "<{0}: {1}>".format(
             self.__class__.__name__,
             self.user.username)
 

@@ -4,8 +4,10 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.db import transaction
+from django.db.models import Q
 from django.db.models.functions import Lower
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -14,7 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from .forms import ChoiceForm, SeLoginUserForm, SeLoginSignInForm, SeLoginEnrollForm
-from .models import Choice, Question, Voter
+from .models import Choice, Participation, Question, Voter
 
 
 def selogin_user(request, *args, **kwargs):
@@ -174,18 +176,28 @@ class QuestionDetailView(generic.DetailView):
 
 class VoterDetailView(generic.DetailView):
     template_name = 'open_choice_polls/voter_detail.html'
-    model = User
+    model = Voter
 
-    slug_field = 'id'
-    slug_url_kwarg = 'id'
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
 
-    def get_queryset(self):
-        if self.request.user.is_superuser:  # superuser may be all pages
-            return User.objects.all()
-        elif self.request.user.is_authenticated:  # regular users only see their own page
-            return User.objects.filter(username=self.request.user)
-        else:  # unauthenticated callers get 404
-            return User.objects.none()
+    def get_object(self, queryset=None):
+        obj = get_object_or_404(User, username=self.kwargs.get('username'))
+
+        # only owner can view his page
+        if self.request.user.username == obj.username:
+            return obj
+        else:
+            # redirect to 404 page
+            raise Http404("Poll does not exist")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) & Q(is_allowed=True)) \
+            .order_by('question__number')
+        context['participation_list'] = qs
+        return context
 
 
 class EnterVoteView(LoginRequiredMixin, generic.DetailView):
@@ -196,22 +208,29 @@ class EnterVoteView(LoginRequiredMixin, generic.DetailView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
 
-        # check whether allowed votes (of cookie-based session) is exceeded
-        num_votes_cast = get_session_num_votes_cast(self.request.session, self.object.id)
-        if num_votes_cast >= self.object.votes_per_session:
+        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
+                                          Q(question__id=self.object.id) &
+                                          Q(is_allowed=True))
+        participation = qs.get()
+        context['participation'] = participation
+
+        if participation.votes_cast >= self.object.votes_per_session:
             return redirect(reverse('open_choice_polls:results',
                                     kwargs={'slug': self.object.slug, 'id': self.object.id}))
 
-        context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        # Number of votes, as counted in the session variable.
-        context['num_votes_cast'] = get_session_num_votes_cast(self.request.session, self.object.id)
+        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
+                                          Q(question__id=self.object.id) &
+                                          Q(is_allowed=True))
+        participation = qs.get()
+        context['participation'] = participation
 
         choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED).order_by(Lower('choice_text'))
         context['choices_approved'] = choices_approved
@@ -227,9 +246,10 @@ class ResultsView(generic.DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        # Number of votes, as counted in the session variable.
-        num_votes_cast = get_session_num_votes_cast(self.request.session, self.object.id)
-        context['num_votes_cast'] = num_votes_cast
+        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
+                                          Q(question__id=self.object.id))
+        participation = qs.get()
+        context['participation'] = participation
 
         choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED).order_by('-votes')
         context['choices_approved'] = choices_approved
@@ -294,22 +314,19 @@ def add_choice(request, id, slug=None, *args, **kwargs):
     })
 
 
-# ToDo where does this belong?
-def get_session_num_votes_cast(session, obj_id):
-    return session.get('question_{}_num_votes_cast'.format(obj_id), 0)
-
-
-def set_session_num_votes_cast(session, obj_id, value):
-    session['question_{}_num_votes_cast'.format(obj_id)] = value
-
-
-def inc_session_num_votes_cast(session, obj_id):
-    old_value = get_session_num_votes_cast(session, obj_id)
-    session['question_{}_num_votes_cast'.format(obj_id)] = old_value + 1
-
-
 def vote(request, id, slug=None, *args, **kwargs):
     question = get_object_or_404(Question, id=id)
+
+    # try:
+
+    qs = Participation.objects.filter(Q(voter__user__id=request.user.id) &
+                                      Q(question__id=question.id))
+    participation = qs.select_for_update().get()
+
+    # except ObjectDoesNotExist:
+    #     # ToDo(frennkie) what to do here?
+    #     pass
+
     try:
         selected_choice = question.choice_set.get(id=request.POST['choice'])
     except (KeyError, Choice.DoesNotExist):
@@ -318,27 +335,31 @@ def vote(request, id, slug=None, *args, **kwargs):
             'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
             'choices_open': Choice.open.filter(question=question.id).order_by(Lower('choice_text')),
             'choices_rejected': Choice.rejected.filter(question=question.id).order_by(Lower('choice_text')),
-            'num_votes_cast': get_session_num_votes_cast(request.session, question.id),
+            'participation': participation,
             'question': question,
             'error_message': "You didn't select a choice.",
         })
     else:
-        # check whether allowed votes (of cookie-based session) is exceeded
-        if get_session_num_votes_cast(request.session, question.id) >= question.votes_per_session:
+        # check whether allowed votes is exceeded
+        if participation.votes_cast >= question.votes_per_session:
             return render(request, 'open_choice_polls/question_results.html', {
                 'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
-                'num_votes_cast': get_session_num_votes_cast(request.session, question.id),
+                'participation': participation,
                 'question': question,
                 'error_message': "Sorry - you have already used up all votes",
             })
 
         # only allow votes for approved choices
         if selected_choice.review_status == Choice.APPROVED:
-            selected_choice.votes += 1
-            selected_choice.save()
+            with transaction.atomic():
+                selected_choice.votes += 1
+                selected_choice.save()
+                selected_choice.refresh_from_db()
 
-            # Increment number of votes, as counted in the session variable.
-            inc_session_num_votes_cast(request.session, question.id)
+            with transaction.atomic():
+                participation.votes_cast += 1
+                participation.save()
+                participation.refresh_from_db()
 
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
