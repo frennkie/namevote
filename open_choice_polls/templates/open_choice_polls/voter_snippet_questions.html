@@ -1,0 +1,30 @@
+{% load i18n %}
+
+<div class="row justify-content-center">
+    <div class="col">
+
+        <div class="card border-secondary mb-3">
+            {% if participation_list %}
+                <div class="card-header text-white bg-primary">
+                    <h5>Questions</h5>
+                </div>
+
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for participation in participation_list %}
+                            <li class="list-group-item">
+                                <a href="{% url 'open_choice_polls:question-detail' slug=participation.question.slug id=participation.question.id %}"
+                                   class="text-dark">{{ participation.question }} ({{ participation.votes_cast }}/{{ participation.question.votes_per_session }})</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <div class="card-header text-white bg-dark">
+                    <h5>Sorry, this Voter has no Questions assigned at the moment.</h5>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>

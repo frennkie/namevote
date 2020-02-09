@@ -3,6 +3,10 @@
     display:block;
 }
 
+.navbar {
+  margin-bottom: 15px;
+}
+
 /* Tooltip container */
 .css-tooltip {
   position: relative;

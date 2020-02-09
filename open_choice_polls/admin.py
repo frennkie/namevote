@@ -1,16 +1,92 @@
 from django.contrib import admin, messages
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
-from django.utils.safestring import mark_safe
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from .models import Choice, Question
 from .forms import ChoiceReviewForm
+from .models import Choice, Question, Voter, Participation
+
+
+class VoterInline(admin.StackedInline):
+    model = Voter
+    can_delete = False
+    verbose_name_plural = "voter"
+
+    # readonly_fields = ('is_voter', 'is_enrolled', 'enrollment_code',)
+    readonly_fields = ('is_voter', 'enrollment_code',)
+
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (VoterInline,)
+
+
+class VoterAdmin(admin.ModelAdmin):
+    list_display = ('user', 'is_voter', 'is_enrolled', 'enrollment_code')
+    list_filter = ('is_voter', 'is_enrolled',)
+    search_fields = ['user__username']
+
+    # readonly_fields = ('user', 'is_voter', 'is_enrolled', 'enrollment_code',)
+    readonly_fields = ('user', 'is_voter', 'enrollment_code',)
+
+    fieldsets = [
+        (None, {'fields': ['user',
+                           'is_voter',
+                           'is_enrolled',
+                           'enrollment_code']}),
+    ]
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    # actions = ["generate_1_voter"]
+
+    # def export_codes_to_html(self, request, queryset):
+    #
+    #     rows_updated = queryset.update(is_distributed=True)
+    #     _ = queryset.update(distribution_type=DownloadCode.PRINTED)
+    #
+    #     if rows_updated == 1:
+    #         message_bit = "1 code was"
+    #     else:
+    #         message_bit = "%s codes were" % rows_updated
+    #     self.message_user(request, "%s successfully disabled." % message_bit)
+    #
+    #     response = TemplateResponse(request, 'downloadcode/admin_code_export.html', {'entries': queryset})
+    #     # response['Content-Disposition'] = 'attachment;filename="codes.html'
+    #     return response
+    # export_codes_to_html.short_description = _("Export selected download codes to HTML")
+
+    # def generate_1_voter(self, request, queryset):
+    #
+    #     prefix = settings.OPEN_CHOICE_POLLS_VOTER_PREFIX
+    #
+    #     # Create user and save to the database
+    #     user = User.objects.create_user('{}_myusername'.format(prefix), password='mypassword')
+    #
+    #     # Update fields and then save again
+    #     user.first_name = 'John'
+    #     user.last_name = 'Citizen'
+    #     user.save()
+    #
+    #     self.message_user(request, "successfully generated 1 user.")
+    #
+    # generate_1_voter.short_description = _("Create 1 Voter")
 
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 3
+
+
+class ParticipationInline(admin.TabularInline):
+    model = Participation
+    extra = 1
 
 
 class QuestionAdmin(admin.ModelAdmin):
@@ -57,7 +133,7 @@ class QuestionAdmin(admin.ModelAdmin):
                        'voting_duration',
                        'total_choices', 'total_approved_choices')
 
-    inlines = [ChoiceInline]
+    inlines = [ChoiceInline, ParticipationInline]
 
     def save_model(self, request, obj, form, change):
         if obj.collection_end_date <= obj.collection_start_date:
@@ -133,9 +209,15 @@ class SessionAdmin(admin.ModelAdmin):
     def _session_data(self, obj):
         return obj.get_decoded()
 
-    list_display = ['session_key', '_session_data', 'expire_date']
+    list_display = ('session_key', '_session_data', 'expire_date')
 
 
+# Re-register UserAdmin
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
+
+# Register other models
+admin.site.register(Voter, VoterAdmin)
 admin.site.register(Session, SessionAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Choice, ChoiceAdmin)
