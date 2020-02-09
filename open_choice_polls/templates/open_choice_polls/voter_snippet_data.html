@@ -17,18 +17,18 @@
                     <li class="list-group-item">
                         {% trans "Is Voter" %}:
                         {% if user.voter.is_voter %}
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-check-circle text-success"></i>
                         {% else %}
-                            <i class="fas fa-times-circle"></i>
+                            <i class="fas fa-times-circle text-danger"></i>
                         {% endif %}
                     </li>
 
                     <li class="list-group-item">
                         {% trans "Is Enrolled" %}:
                         {% if user.voter.is_enrolled %}
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-check-circle text-success"></i>
                         {% else %}
-                            <i class="fas fa-times-circle"></i>
+                            <i class="fas fa-times-circle text-danger"></i>
                         {% endif %}
                     </li>
 
