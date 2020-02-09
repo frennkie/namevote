@@ -70,9 +70,9 @@
 
                     <div class="card-footer">
                         {% if question.voting_is_active %}
-                            You have voted <b>{{ num_votes_cast }}</b>
+                            You have voted <b>{{ participation.votes_cast }}</b>
                             of <b>{{ question.votes_per_session }}</b> time{{ question.votes_per_session|pluralize }}
-                            {% if num_votes_cast < question.votes_per_session %}
+                            {% if participation.votes_cast < question.votes_per_session %}
                                 -<a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}">Vote
                                 again? </a>
                             {% endif %}
@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        {% if question.voting_is_active and num_votes_cast < question.votes_per_session %}
+        {% if question.voting_is_active and participation.votes_cast < question.votes_per_session %}
             {% include "open_choice_polls/question_snippet_vote.html" with question=question %}
         {% endif %}
 

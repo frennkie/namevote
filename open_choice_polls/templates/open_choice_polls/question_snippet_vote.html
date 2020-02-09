@@ -19,7 +19,7 @@
                                 <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
                             {% endfor %}
                             <input class="btn btn-primary" type="submit"
-                                   value="Vote ({{ num_votes_cast|add:"1" }} of {{ question.votes_per_session }})">
+                                   value="Vote ({{ participation.votes_cast|add:"1" }} of {{ question.votes_per_session }})">
                         </form>
 
                     {% else %}
