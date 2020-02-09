@@ -58,6 +58,12 @@ def selogin(request, username=None, *args, **kwargs):
             user = authenticate(username=username, password=password)
             if user is not None:
 
+                if user.is_superuser:
+                    if next_:
+                        return redirect(next_)
+                    else:
+                        return redirect('open_choice_polls:question-list')
+
                 if user.voter.is_enrolled:
                     login(request, user)
 
