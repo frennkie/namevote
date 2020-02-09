@@ -12,6 +12,7 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+from django_extensions.db.models import TimeStampedModel
 
 SELECTED_LETTERS = 'ABCDEFGHKMNPQRSTUVWX'
 SELECTED_NUMBERS = '23456789'
@@ -235,7 +236,7 @@ class RejectedChoiceManager(models.Manager):
         return super().get_queryset().filter(review_status=Choice.REJECTED)
 
 
-class Choice(models.Model):
+class Choice(TimeStampedModel, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
