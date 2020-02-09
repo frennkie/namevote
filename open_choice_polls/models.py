@@ -1,4 +1,3 @@
-import random
 import re
 import uuid
 
@@ -12,6 +11,32 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+from itertools import accumulate as _accumulate, repeat as _repeat
+from bisect import bisect as _bisect
+
+
+def choices(self, population, weights=None, *, cum_weights=None, k=1):
+    """Return a k sized list of population elements chosen with replacement.
+    If the relative weights or cumulative weights are not specified,
+    the selections are made with equal probability.
+    """
+    random = self.random
+    n = len(population)
+    if cum_weights is None:
+        if weights is None:
+            _int = int
+            n += 0.0  # convert to float for a small speed improvement
+            return [population[_int(random() * n)] for i in _repeat(None, k)]
+        cum_weights = list(_accumulate(weights))
+    elif weights is not None:
+        raise TypeError('Cannot specify both weights and cumulative weights')
+    if len(cum_weights) != n:
+        raise ValueError('The number of weights does not match the population')
+    bisect = _bisect
+    total = cum_weights[-1] + 0.0  # convert to float
+    hi = n - 1
+    return [population[bisect(cum_weights, random() * total, 0, hi)]
+            for i in _repeat(None, k)]
 
 
 class Voter(models.Model):
@@ -30,16 +55,16 @@ class Voter(models.Model):
 
     @staticmethod
     def create_enrollment_code():
-        first = ''.join(random.choices('ABCDEFGHKMNPQRSTUVWX', k=2))
-        second = ''.join(random.choices('23456789', k=3))
-        third = ''.join(random.choices('abcdefghkmnpqrstuvwx', k=2))
+        first = ''.join(choices('ABCDEFGHKMNPQRSTUVWX', k=2))
+        second = ''.join(choices('23456789', k=3))
+        third = ''.join(choices('abcdefghkmnpqrstuvwx', k=2))
         return "{}{}{}".format(first, second, third)
 
     @staticmethod
     def create_new_password():
-        first = ''.join(random.choices('ABCDEFGHKMNPQRSTUVWX', k=4))
-        second = ''.join(random.choices('23456789', k=5))
-        third = ''.join(random.choices('abcdefghkmnpqrstuvwx', k=4))
+        first = ''.join(choices('ABCDEFGHKMNPQRSTUVWX', k=4))
+        second = ''.join(choices('23456789', k=5))
+        third = ''.join(choices('abcdefghkmnpqrstuvwx', k=4))
         return "{}-{}-{}".format(first, second, third)
 
     def __repr__(self):
