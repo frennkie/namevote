@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
@@ -8,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from .forms import ChoiceReviewForm
-from .models import Choice, Question, Voter
+from .models import Choice, Question, Voter, Participation
 
 
 class VoterInline(admin.StackedInline):
@@ -85,6 +84,11 @@ class ChoiceInline(admin.TabularInline):
     extra = 3
 
 
+class ParticipationInline(admin.TabularInline):
+    model = Participation
+    extra = 1
+
+
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('text', 'number', 'created', 'is_visible', 'collection_is_active', 'voting_is_active')
     list_filter = ['created', 'is_visible']
@@ -129,7 +133,7 @@ class QuestionAdmin(admin.ModelAdmin):
                        'voting_duration',
                        'total_choices', 'total_approved_choices')
 
-    inlines = [ChoiceInline]
+    inlines = [ChoiceInline, ParticipationInline]
 
     def save_model(self, request, obj, form, change):
         if obj.collection_end_date <= obj.collection_start_date:

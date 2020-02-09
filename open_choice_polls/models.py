@@ -107,6 +107,8 @@ class Question(models.Model):
     votes_per_session = models.PositiveSmallIntegerField(verbose_name=_('number of votes allowed '
                                                                         'per (cookie-based session)'), default=5)
 
+    voter_participation = models.ManyToManyField(Voter, through='Participation')
+
     def get_absolute_url(self):
         return reverse('open_choice_polls:question-detail', kwargs={'slug': self.slug, 'id': self.id})
 
@@ -169,8 +171,12 @@ class Question(models.Model):
     voting_duration.short_description = _('Voting duration')
 
     @property
+    def number_zfill(self):
+        return "Q{}".format(str(self.number).zfill(3))
+
+    @property
     def number_text(self):
-        return "Q{0} {1}".format(str(self.number).zfill(3), self.text)
+        return "{0} {1}".format(self.number_zfill, self.text)
 
     @property
     def total_choices(self):
@@ -219,6 +225,24 @@ class Question(models.Model):
                 self.number = last_number + 1
 
         super(Question, self).save(*args, **kwargs)
+
+
+class Participation(models.Model):
+    voter = models.ForeignKey(Voter, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    is_allowed = models.BooleanField(default=False, help_text=_('Is participation (vote) allowed?'))
+    votes_cast = models.PositiveIntegerField(default=0, help_text=_('Number of votes cast no Question'))
+
+    def __repr__(self):
+        return "<{}: {} {} {} ({})>".format(
+            self.__class__.__name__,
+            self.question.number_zfill,
+            self.voter.user.username,
+            self.is_allowed,
+            self.votes_cast)
+
+    def __str__(self):
+        return "{}_<{}>".format(self.voter.user.username, self.question.number_text)
 
 
 class ApprovedChoiceManager(models.Manager):
