@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Codes</title>
+    <title>Voters</title>
 
     {% load static %}
 
@@ -22,33 +22,46 @@
             }
         }
 
-
-        .table {
-            display: table;
-            border-collapse: separate;
-            border-spacing: 10px 20px;
-            font-family: "Eagle Lake", Tahoma, sans-serif;
-            font-size: 10pt;
-            position: relative;
-
-
+        table.report-container {
+            page-break-after: always;
+            font-family: Verdana, Tahoma, sans-serif;
         }
-        {##}
-        {#table:after {#}
-        {#    content: "";#}
-        {#    background: url("{% static "downloadcode/img/reminder_logo.png" %}");#}
-        {#    background-size: 50%;#}
-        {#    opacity: 0.1; /* set your opacity */#}
-        {#    top: 0;#}
-        {#    left: 0;#}
-        {#    bottom: 0;#}
-        {#    right: 0;#}
-        {#    position: absolute;#}
-        {#    z-index: -1;#}
-        {#foo }#}
+
+        thead.report-header {
+            display: table-header-group;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-size: 10pt;
+        }
 
         td.left_td {
             padding-right: 6px;
+            column-width: 160px;
+        }
+
+        td.middle_td {
+            padding-right: 6px;
+            column-width: 300px;
+        }
+
+        td.right_td {
+            padding-right: 6px;
+            column-width: 300px;
+        }
+
+        td.sleeve_td {
+            padding-right: 6px;
+            column-width: 80px;
+        }
+
+        div.my_centered {
+            text-align: center;
+        }
+
+        div.my_left {
+            text-align: left;
+            padding: 2px;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-size: 10pt;
         }
 
         p.my_centered {
@@ -67,33 +80,67 @@
 <div class="container-fluid">
 
     {% if entries %}
-        <table class="table">
+        <table class="report-container">
+            <thead class="report-header">
+            <tr>
+                <th class="report-header-cell">
+                    <div class="my_centered">1: flip&fold f right</div>
+                    <hr>
+                </th>
+                <th class="report-header-cell">
+                    <div class="my_centered">4: cut below line</div>
+                    <hr>
+                </th>
+                <th class="report-header-cell">
+                    <div class="my_centered">2: fold</div>
+                    <hr>
+                </th>
+                <th class="report-header-cell">
+                    <div class="my_centered">3: fold</div>
+                    <hr>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
             {% for entry in entries %}
+                <tr>
+                    <td class="left_td">
+                        <div class="my_left"><b>https://vote.rhab.de</b></div>
+                        <div class="my_left">User: <b>{{ entry.user }}</b></div>
+                        <div class="my_left">Code: <b>{{ entry.enrollment_code }}</b></div>
+                        <div class="my_left">Valid until: {{ entry.is_enrolled }}</div>
+                        <div class="my_left">&nbsp;</div>
+                    </td>
+
+                    <td class="middle_td">
+                        &nbsp;
+                    </td>
+
+                    <td class=" right_td">
+                        &nbsp;
+                    </td>
+                    <td class="sleeve_td">
+                        &nbsp;
+                    </td>
+                </tr>
 
                 <tr>
                     <td class="left_td">
-                        <p class="my_centered"><b>{{ entry.asset.public_title }}</b></p>
-                        <p class="my_centered">Download Code: <b>{{ entry.code }}</b></p>
-
-                        <!--
-                            <p class="my_centered">Redeem at: https://www.remindermusic.org</p>
-                            <p class="my_centered">Valid for 90 days</p>
-                        -->
-
-                        <p class="my_centered">Valid for 90 days - Redeem at:</p>
-                        <p class="my_centered"><b>https://www.remindermusic.org</b></p>
+                        <hr>
                     </td>
-
-                    <td>
-                        <p class="my_left">{{ entry.asset.public_title }}</p>
-                        <p class="my_left">Download Code: <b>{{ entry.code }}</b></p>
-                        <p class="my_left">Given out:</p>
-                        <p class="my_left">Valid until:</p>
+                    <td class="middle_td">
+                        <hr>
                     </td>
-
+                    <td class="right_td">
+                        <hr>
+                    </td>
+                    <td class="sleeve_td">
+                        <hr>
+                    </td>
                 </tr>
 
             {% endfor %}
+            </tbody>
         </table>
     {% else %}
         <h2>No codes selected.</h2>
