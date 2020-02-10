@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -44,23 +45,14 @@ class VoterAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-    # actions = ["generate_1_voter"]
+    actions = ["export_codes_to_html"]
 
-    # def export_codes_to_html(self, request, queryset):
-    #
-    #     rows_updated = queryset.update(is_distributed=True)
-    #     _ = queryset.update(distribution_type=DownloadCode.PRINTED)
-    #
-    #     if rows_updated == 1:
-    #         message_bit = "1 code was"
-    #     else:
-    #         message_bit = "%s codes were" % rows_updated
-    #     self.message_user(request, "%s successfully disabled." % message_bit)
-    #
-    #     response = TemplateResponse(request, 'downloadcode/admin_code_export.html', {'entries': queryset})
-    #     # response['Content-Disposition'] = 'attachment;filename="codes.html'
-    #     return response
-    # export_codes_to_html.short_description = _("Export selected download codes to HTML")
+    def export_codes_to_html(self, request, queryset):
+        # rows_updated = queryset.update(is_distributed=True)
+        # _ = queryset.update(distribution_type=DownloadCode.PRINTED)
+        response = TemplateResponse(request, 'open_choice_polls/admin_voter_export.html', {'entries': queryset})
+        return response
+    export_codes_to_html.short_description = _("Export selected Voters to HTML")
 
     # def generate_1_voter(self, request, queryset):
     #
