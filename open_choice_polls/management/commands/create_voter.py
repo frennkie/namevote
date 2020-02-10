@@ -15,6 +15,6 @@ class Command(BaseCommand):
         if res:
             self.stdout.write(self.style.SUCCESS('Successfully created {} voter(s)'.format(amount)))
             for voter in res:
-                self.stdout.write(self.style.SUCCESS('Voter: {}'.format(voter)))
+                self.stdout.write(self.style.SUCCESS('Voter: {}'.format(voter.username)))
         else:
             self.stdout.write(self.style.WARNING('Failed to create {} voter(s)'.format(amount)))

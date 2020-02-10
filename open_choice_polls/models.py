@@ -80,7 +80,7 @@ class Voter(models.Model):
                 user.save()
 
                 # self.stdout.write(self.style.SUCCESS('Successfully created 1 voter: {}'.format(voter_username)))
-                ids_res.append(user.username)
+                ids_res.append(user)
             except IntegrityError:
                 # self.stdout.write(self.style.WARNING('Failed to create 1 voter: {}'.format(voter_username)))
                 break

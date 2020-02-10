@@ -54,10 +54,12 @@ class VoterAdmin(admin.ModelAdmin):
         return response
     export_codes_to_html.short_description = _("Export selected Voters to HTML")
 
+    # ToDo(frennkie) this requires admin to select (any) existing voter
     def generate_1_voter(self, request, queryset):
         res = Voter.create_voter(1)
         if res:
-            self.message_user(request, "successfully generated 1 user: {}".format([res[0]]))
+            user_obj = res[0]
+            self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
     generate_1_voter.short_description = _("Create 1 Voter")
 
 
