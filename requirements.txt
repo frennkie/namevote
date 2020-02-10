@@ -2,4 +2,3 @@ Django>=2.2,<3.0
 django-basic-auth-ip-whitelist==0.3.1
 django-extensions
 django-markdownify
-django-cors-headers

@@ -91,7 +91,6 @@ LOGGING = {
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -215,10 +214,3 @@ BASIC_AUTH_WHITELISTED_IP_NETWORKS = [
 ]
 
 BASIC_AUTH_RESPONSE_TEMPLATE = 'open_choice_polls/401.html'
-
-# https://github.com/adamchainz/django-cors-headers#configuration
-# useful e.g. for STATIC_URL on different web server
-CORS_ORIGIN_WHITELIST = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000"
-]
