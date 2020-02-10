@@ -45,7 +45,7 @@ class VoterAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-    actions = ["export_codes_to_html"]
+    actions = ["export_codes_to_html", "generate_1_voter"]
 
     def export_codes_to_html(self, request, queryset):
         # rows_updated = queryset.update(is_distributed=True)
@@ -54,21 +54,11 @@ class VoterAdmin(admin.ModelAdmin):
         return response
     export_codes_to_html.short_description = _("Export selected Voters to HTML")
 
-    # def generate_1_voter(self, request, queryset):
-    #
-    #     prefix = settings.OPEN_CHOICE_POLLS_VOTER_PREFIX
-    #
-    #     # Create user and save to the database
-    #     user = User.objects.create_user('{}_myusername'.format(prefix), password='mypassword')
-    #
-    #     # Update fields and then save again
-    #     user.first_name = 'John'
-    #     user.last_name = 'Citizen'
-    #     user.save()
-    #
-    #     self.message_user(request, "successfully generated 1 user.")
-    #
-    # generate_1_voter.short_description = _("Create 1 Voter")
+    def generate_1_voter(self, request, queryset):
+        res = Voter.create_voter(1)
+        if res:
+            self.message_user(request, "successfully generated 1 user: {}".format([res[0]]))
+    generate_1_voter.short_description = _("Create 1 Voter")
 
 
 class ChoiceInline(admin.TabularInline):

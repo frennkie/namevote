@@ -1,9 +1,10 @@
+import random
 import re
 import uuid
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
@@ -13,6 +14,8 @@ from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django_extensions.db.models import TimeStampedModel
+
+from open_choice_polls import settings
 
 SELECTED_LETTERS = 'ABCDEFGHKMNPQRSTUVWX'
 SELECTED_NUMBERS = '23456789'
@@ -34,15 +37,15 @@ class Voter(models.Model):
 
     @staticmethod
     def create_enrollment_code():
-        first = get_random_string(2, SELECTED_LETTERS)
-        second = get_random_string(3, SELECTED_NUMBERS)
-        third = get_random_string(2, SELECTED_LETTERS.lower())
-        return "{}{}{}".format(first, second, third)
+        first = get_random_string(5, SELECTED_LETTERS)
+        second = get_random_string(4, SELECTED_NUMBERS)
+        third = get_random_string(5, SELECTED_LETTERS.lower())
+        return "{}-{}-{}".format(first, second, third)
 
     @staticmethod
     def create_new_password():
         first = get_random_string(4, SELECTED_LETTERS)
-        second = get_random_string(5, SELECTED_NUMBERS)
+        second = get_random_string(3, SELECTED_NUMBERS)
         third = get_random_string(4, SELECTED_LETTERS.lower())
         return "{}-{}-{}".format(first, second, third)
 
@@ -53,6 +56,35 @@ class Voter(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    @classmethod
+    def create_voter(cls, amount=1):
+        if amount < 1:
+            raise NotImplementedError("create at least 1 Voter!")
+
+        prefix = settings.OPEN_CHOICE_POLLS_VOTER_PREFIX
+
+        ids_rand = random.sample(range(settings.OPEN_CHOICE_POLLS_VOTER_RANGE_START,
+                                       settings.OPEN_CHOICE_POLLS_VOTER_RANGE_END), amount)
+
+        ids_res = []
+        for i in ids_rand:
+            # Create user and save to the database
+            voter_username = '{}{}'.format(prefix, str(i).zfill(3))
+            try:
+                enrollment_code = Voter.create_enrollment_code()
+                user = User.objects.create_user(voter_username, password=enrollment_code)
+
+                user.voter.is_voter = True
+                user.voter.enrollment_code = enrollment_code
+                user.save()
+
+                # self.stdout.write(self.style.SUCCESS('Successfully created 1 voter: {}'.format(voter_username)))
+                ids_res.append(user.username)
+            except IntegrityError:
+                # self.stdout.write(self.style.WARNING('Failed to create 1 voter: {}'.format(voter_username)))
+                break
+        return ids_res
 
 
 @receiver(post_save, sender=User)
