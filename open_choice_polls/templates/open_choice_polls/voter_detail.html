@@ -12,6 +12,17 @@
 
     <div class="container">
 
+        {% if successful_enrollment %}
+            <div class="row">
+                <div class="col">
+                    <div class="card border-success mb-3">
+                        <div class="card-body">{{ message }}</div>
+                    </div>
+
+                </div>
+            </div>
+        {% endif %}
+
         {% include "open_choice_polls/voter_snippet_data.html" %}
 
         {% include "open_choice_polls/voter_snippet_questions.html" %}

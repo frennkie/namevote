@@ -128,18 +128,15 @@ def selogin(request, username=None, *args, **kwargs):
                     user.voter.is_enrolled = True
                     user.set_password(new_pw)
                     user.save()
-                    error_message = 'Enrollment successful of user: {}\n' \
-                                    'Password has been changed. If you close your browser or delete your ' \
-                                    'cookies then you will need the new password to re-enable your voting ' \
-                                    'privileges. The new password is: {}'.format(username, new_pw)
+                    message = 'Enrollment successful of user: {}\n' \
+                              'Password has been changed. If you close your browser or delete your ' \
+                              'cookies then you will need the new password to re-enable your voting ' \
+                              'privileges. The new password is: {}'.format(username, new_pw)
 
                     login(request, user)
 
-                    return render(request, 'open_choice_polls/voter_login.html', {
-                        'username': username,
-                        'form_sign_in': form_sign_in,
-                        'form_enroll': form_enroll,
-                        'error_message': error_message,
+                    return render(request, 'open_choice_polls/voter_detail.html', {
+                        'message': message,
                         'successful_enrollment': True,
                     })
                 else:
