@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.admindocs',
     'django_extensions',
     'django.contrib.humanize',
-    'corsheaders',
     'markdownify',
 ]
 
