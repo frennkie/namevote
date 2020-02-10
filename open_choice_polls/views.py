@@ -30,9 +30,7 @@ def selogin_user(request, *args, **kwargs):
     else:
         next_ = request.GET.get('next')
 
-    # ToDo(frennkie) use next_ ?!
-
-    form = SeLoginUserForm()
+    form = SeLoginUserForm(initial={'next': next_})
     form.is_valid()
 
     return render(request, 'open_choice_polls/voter_login_user.html', {
@@ -84,49 +82,68 @@ def selogin(request, username=None, *args, **kwargs):
                 error_message = "Sign in failed. Invalid username or password! Try another password again."
 
         elif request.POST.get('form') == SeLoginEnrollForm.FORM_NAME:
-            print("enroll.......")
+            print("enrollment...")
 
             form_enroll = SeLoginEnrollForm(request.POST)
             form_enroll.is_valid()
 
+            enrollment_code = form_enroll.cleaned_data.get('enrollment_code')
+
             if not username:
                 username = form_enroll.cleaned_data.get('username')
 
-            try:
-                obj = User.objects.filter(voter__is_voter=True). \
-                    filter(username=username). \
-                    filter(voter__is_enrolled=False). \
-                    get()
+            if not username:
+                print("looking up username from enrollment_code")
 
-                # check given enrollment_code against DB
-                enrollment_code = form_enroll.cleaned_data.get('enrollment_code')
-                if obj.voter.enrollment_code == enrollment_code:
+                voter_obj = Voter.objects.filter(is_voter=True). \
+                    filter(enrollment_code=enrollment_code). \
+                    first()
 
-                    # try to authenticate
-                    user = authenticate(username=username, password=enrollment_code)
-                    if user is not None:
-                        new_pw = Voter.create_new_password()
-                        user.voter.is_enrolled = True
-                        user.set_password(new_pw)
-                        user.save()
-                        error_message = 'Enrollment successful! Password has been changed. ' \
-                                        'If you close your browser or delete your cookies then you will need' \
-                                        'the new password to re-enable your voting privileges. ' \
-                                        'The new password is: {}'.format(new_pw)
+                if not voter_obj:
+                    error_message = "not found"
 
-                        login(request, user)
+                    return render(request, 'open_choice_polls/voter_login.html', {
+                        'username': None,
+                        'form_sign_in': SeLoginSignInForm(initial={'next': next_}),
+                        'form_enroll': SeLoginEnrollForm(initial={'next': next_}),
+                        'error_message': error_message,
+                    })
 
-                        return render(request, 'open_choice_polls/voter_login.html', {
-                            'username': username,
-                            'form_sign_in': form_sign_in,
-                            'form_enroll': form_enroll,
-                            'error_message': error_message,
-                            'successful_enrollment': True,
-                        })
+                if voter_obj.is_enrolled:
+                    error_message = "already enrolled"
 
-            except ObjectDoesNotExist:
-                # Todo(frennkie) not found
-                error_message = "Invalid username or password (or User is already enrolled)"
+                    return render(request, 'open_choice_polls/voter_login.html', {
+                        'username': None,
+                        'form_sign_in': SeLoginSignInForm(initial={'next': next_}),
+                        'form_enroll': SeLoginEnrollForm(initial={'next': next_}),
+                        'error_message': error_message,
+                    })
+
+                username = voter_obj.user.username
+
+                # try to authenticate
+                user = authenticate(username=username, password=enrollment_code)
+                if user is not None:
+                    new_pw = Voter.create_new_password()
+                    user.voter.is_enrolled = True
+                    user.set_password(new_pw)
+                    user.save()
+                    error_message = 'Enrollment successful of user: {}\n' \
+                                    'Password has been changed. If you close your browser or delete your ' \
+                                    'cookies then you will need the new password to re-enable your voting ' \
+                                    'privileges. The new password is: {}'.format(username, new_pw)
+
+                    login(request, user)
+
+                    return render(request, 'open_choice_polls/voter_login.html', {
+                        'username': username,
+                        'form_sign_in': form_sign_in,
+                        'form_enroll': form_enroll,
+                        'error_message': error_message,
+                        'successful_enrollment': True,
+                    })
+                else:
+                    raise Exception("hm.. couldn't authenticate you.. this should have worked! :-/")
 
         else:
             raise Exception("form fu")
