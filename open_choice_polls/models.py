@@ -102,8 +102,10 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    if not instance.id == 1:
+    try:
         instance.voter.save()
+    except Voter.DoesNotExist:
+        print("does not exist")  # ToDo(frennkie)
 
 
 class Question(models.Model):
