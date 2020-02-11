@@ -135,9 +135,13 @@ def selogin(request, username=None, *args, **kwargs):
 
                     login(request, user)
 
+                    qs = Participation.objects.filter(Q(voter__user__id=user.id) & Q(is_allowed=True)) \
+                        .order_by('question__number')
+
                     return render(request, 'open_choice_polls/voter_detail.html', {
                         'message': message,
                         'successful_enrollment': True,
+                        'participation_list': qs.all()
                     })
                 else:
                     raise Exception("hm.. couldn't authenticate you.. this should have worked! :-/")
