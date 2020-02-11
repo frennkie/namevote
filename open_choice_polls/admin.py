@@ -36,7 +36,8 @@ class VoterAdmin(admin.ModelAdmin):
         (None, {'fields': ['user',
                            'is_voter',
                            'is_enrolled',
-                           'enrollment_code']}),
+                           'enrollment_code',
+                           'enrollment_code_valid_until']}),
     ]
 
     def get_actions(self, request):
@@ -56,7 +57,7 @@ class VoterAdmin(admin.ModelAdmin):
 
     # ToDo(frennkie) this requires admin to select (any) existing voter
     def generate_1_voter(self, request, queryset):
-        res = Voter.create_voter(1)
+        res = Voter.create_voter(1, 30)
         if res:
             user_obj = res[0]
             self.message_user(request, "successfully generated 1 user: {}".format(user_obj))

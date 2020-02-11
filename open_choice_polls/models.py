@@ -1,6 +1,7 @@
 import random
 import re
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -35,6 +36,10 @@ class Voter(models.Model):
     enrollment_code = models.CharField(max_length=80, blank=True, editable=False,
                                        verbose_name=_('Enrollment Code'))
 
+    enrollment_code_valid_until = models.DateTimeField(verbose_name=_('Enrollment Code valid until'),
+                                                       blank=True, null=True,
+                                                       help_text=_("Leave empty for codes that never expire"))
+
     @staticmethod
     def create_enrollment_code():
         first = get_random_string(5, SELECTED_LETTERS)
@@ -58,7 +63,7 @@ class Voter(models.Model):
         return self.user.username
 
     @classmethod
-    def create_voter(cls, amount=1):
+    def create_voter(cls, amount=1, code_valid_timedelta_days=None):
         if amount < 1:
             raise NotImplementedError("create at least 1 Voter!")
 
@@ -77,6 +82,8 @@ class Voter(models.Model):
 
                 user.voter.is_voter = True
                 user.voter.enrollment_code = enrollment_code
+                if code_valid_timedelta_days:
+                    user.voter.enrollment_code_valid_until = timezone.now() + timedelta(days=code_valid_timedelta_days)
                 user.save()
 
                 # self.stdout.write(self.style.SUCCESS('Successfully created 1 voter: {}'.format(voter_username)))

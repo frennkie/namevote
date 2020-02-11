@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         amount = options.get('amount')
 
-        res = Voter.create_voter(amount)
+        res = Voter.create_voter(amount, 30)
         if res:
             self.stdout.write(self.style.SUCCESS('Successfully created {} voter(s)'.format(amount)))
             for voter in res:
