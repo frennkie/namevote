@@ -30,22 +30,22 @@
         thead.report-header {
             display: table-header-group;
             font-family: Verdana, Tahoma, sans-serif;
-            font-size: 10pt;
+            font-size: 9pt;
         }
 
         td.left_td {
             padding-right: 6px;
-            column-width: 160px;
+            column-width: 200px;
         }
 
         td.middle_td {
             padding-right: 6px;
-            column-width: 300px;
+            column-width: 260px;
         }
 
         td.right_td {
             padding-right: 6px;
-            column-width: 300px;
+            column-width: 260px;
         }
 
         td.sleeve_td {
@@ -55,6 +55,9 @@
 
         div.my_centered {
             text-align: center;
+            padding: 2px;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-size: 10pt;
         }
 
         div.my_left {
@@ -66,10 +69,16 @@
 
         p.my_centered {
             text-align: center;
+            padding: 2px;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-size: 10pt;
         }
 
         p.my_left {
             text-align: left;
+            padding: 2px;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-size: 10pt;
         }
 
     </style>
@@ -105,11 +114,12 @@
             {% for entry in entries %}
                 <tr>
                     <td class="left_td">
-                        <div class="my_left">Enrollment Code:</div>
-                        <div class="my_left"><b>{{ entry.enrollment_code }}</b></div>
-                        <div class="my_left">User: <b>{{ entry.user }}</b></div>
-                        <div class="my_left">Use Until:
-                            {{ entry.enrollment_code_valid_until|date:"SHORT_DATE_FORMAT" }}</div>
+                        <div class="my_left">
+                            <b>{{ entry.enrollment_code }}<br></b>
+                            User: <b>{{ entry.user }}</b><br>
+                            Use Until:
+                            {{ entry.enrollment_code_valid_until|date:"SHORT_DATE_FORMAT" }}
+                        </div>
                     </td>
 
                     <td class="middle_td">
@@ -117,10 +127,11 @@
                     </td>
 
                     <td class="right_td">
-                        &nbsp;https://vote.rhab.de
+                        <div class="my_centered">Enroll Code <br>@<br>https://vote.rhab.de
+                        </div>
                     </td>
                     <td class="sleeve_td">
-                        &nbsp;
+
                     </td>
                 </tr>
 
