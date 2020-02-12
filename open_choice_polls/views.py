@@ -345,6 +345,14 @@ def vote(request, id, slug=None, *args, **kwargs):
     #     # ToDo(frennkie) what to do here?
     #     pass
 
+    if not question.voting_is_active:
+        return render(request, 'open_choice_polls/question_results.html', {
+            'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
+            'participation': participation,
+            'question': question,
+            'error_message': "Sorry - vote is not active.",
+        })
+
     try:
         selected_choice = question.choice_set.get(id=request.POST['choice'])
     except (KeyError, Choice.DoesNotExist):
