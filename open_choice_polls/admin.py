@@ -67,8 +67,9 @@ class VoterAdmin(admin.ModelAdmin):
     def generate_25_voter(self, request, queryset):
         res = Voter.create_voter(25, 30)
         if res:
-            user_objs = res
-            lst = ",".join(user_objs.user)
+            user_objs = [x.username for x in res]
+            print(user_objs) 
+            lst = ",".join(user_objs)
             self.message_user(request, "successfully generated 25 user: {}".format(lst))
     generate_25_voter.short_description = _("Create 25 Voters")
 
