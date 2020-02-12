@@ -46,7 +46,7 @@ class VoterAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-    actions = ["export_codes_to_html", "generate_1_voter"]
+    actions = ["export_codes_to_html", "generate_1_voter", 'generate_25_voter']
 
     def export_codes_to_html(self, request, queryset):
         # rows_updated = queryset.update(is_distributed=True)
@@ -62,6 +62,15 @@ class VoterAdmin(admin.ModelAdmin):
             user_obj = res[0]
             self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
     generate_1_voter.short_description = _("Create 1 Voter")
+
+    # ToDo(frennkie) this requires admin to select (any) existing voter
+    def generate_25_voter(self, request, queryset):
+        res = Voter.create_voter(25, 30)
+        if res:
+            user_objs = [x.username for x in res]
+            lst = ",".join(user_objs)
+            self.message_user(request, "successfully generated 25 user: {}".format(lst))
+    generate_25_voter.short_description = _("Create 25 Voters")
 
 
 class ChoiceInline(admin.TabularInline):
