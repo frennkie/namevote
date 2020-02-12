@@ -73,6 +73,9 @@ class ParticipationInline(admin.TabularInline):
     model = Participation
     extra = 1
 
+    def get_queryset(self, request):
+        qs = super(ParticipationInline, self).get_queryset(request)
+        return qs.filter(voter.is_voter=True)
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('text', 'number', 'created', 'is_visible', 'collection_is_active', 'voting_is_active')
