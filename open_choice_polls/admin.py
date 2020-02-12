@@ -46,7 +46,7 @@ class VoterAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-    actions = ["export_codes_to_html", "generate_1_voter"]
+    actions = ["export_codes_to_html", "generate_1_voter", 'generate_25_voter']
 
     def export_codes_to_html(self, request, queryset):
         # rows_updated = queryset.update(is_distributed=True)
