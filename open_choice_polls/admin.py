@@ -63,6 +63,15 @@ class VoterAdmin(admin.ModelAdmin):
             self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
     generate_1_voter.short_description = _("Create 1 Voter")
 
+    # ToDo(frennkie) this requires admin to select (any) existing voter
+    def generate_25_voter(self, request, queryset):
+        res = Voter.create_voter(25, 30)
+        if res:
+            user_objs = res
+            lst = ",".join(user_objs.username)
+            self.message_user(request, "successfully generated 25 user: {}".format(lst))
+    generate_25_voter.short_description = _("Create 25 Voters")
+
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
