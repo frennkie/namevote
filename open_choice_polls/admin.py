@@ -118,7 +118,8 @@ class QuestionAdmin(admin.ModelAdmin):
                                'voting_is_in_future',
                                'voting_duration',
                                'total_choices',
-                               'total_approved_choices'],
+                               'total_approved_choices',
+                               'total_votes'],
                     'classes': ['collapse']}),
     ]
     readonly_fields = ('number', 'slug', 'created',
@@ -126,7 +127,8 @@ class QuestionAdmin(admin.ModelAdmin):
                        'collection_duration',
                        'voting_is_active', 'voting_is_in_past', 'voting_is_in_future',
                        'voting_duration',
-                       'total_choices', 'total_approved_choices')
+                       'total_choices', 'total_approved_choices',
+                       'total_votes')
 
     # inlines = (ChoiceInline, ParticipationInline,)
     inlines = (ChoiceInline, )
