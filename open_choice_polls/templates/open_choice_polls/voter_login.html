@@ -99,6 +99,7 @@
                                             <div class="col-sm-9">
                                                 <input type="text" readonly class="form-control-plaintext"
                                                        id="id_username"
+                                                       placeholder="e.g. anon12345"
                                                        name="username" value="{{ username }}">
                                             </div>
                                             <div class="text-danger">{{ form_sign_in.username.errors }}</div>
@@ -109,6 +110,7 @@
                                                    class="col-sm-3 col-form-label">{{ form_sign_in.username.label }}</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" required id="id_username"
+                                                       placeholder="e.g. anon12345"
                                                        name="username">
                                             </div>
                                             <div class="text-danger">{{ form_sign_in.username.errors }}</div>
@@ -120,6 +122,7 @@
                                                class="col-sm-3 col-form-label">{{ form_sign_in.password.label }}</label>
                                         <div class="col-sm-9">
                                             <input type="password" class="form-control" required id="id_password"
+                                                   placeholder="Password - not the enrollment code!"
                                                    name="password">
                                         </div>
                                         <div class="text-danger">{{ form_sign_in.password.errors }}</div>
@@ -158,6 +161,7 @@
                                                class="col-sm-3 col-form-label">{{ form_enroll.enrollment_code.label }}</label>
                                         <div class="col-sm-9">
                                             <input type="text" class="form-control" required id="id_enrollment_code"
+                                                   placeholder="e.g. ABCDE-2345-abcde"
                                                    name="enrollment_code">
                                         </div>
                                         <div class="text-danger">{{ form_enroll.enrollment_code.errors }}</div>

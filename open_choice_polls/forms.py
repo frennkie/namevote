@@ -30,10 +30,10 @@ class SeLoginSignInForm(forms.Form):
     FORM_NAME = 'sign-in-form'
 
     username = forms.CharField(label=_("Username"), label_suffix="", required=True, max_length=100,
-                               widget=forms.TextInput(
-                                   attrs={'placeholder': 'e.g. anon12345'}))
+                               widget=forms.TextInput(attrs={'placeholder': 'e.g. anon12345'}))
 
-    password = forms.CharField(label=_("Password"), label_suffix="", strip=False, widget=forms.PasswordInput)
+    password = forms.CharField(label=_("Password"), label_suffix="", strip=False)
+
     next = forms.CharField(required=False, widget=forms.HiddenInput())
     form = forms.CharField(required=True, widget=forms.HiddenInput(), initial=FORM_NAME)
 
@@ -46,6 +46,7 @@ class SeLoginEnrollForm(forms.Form):
 
     username = forms.CharField(label=_("Username"), label_suffix="", required=False, widget=forms.HiddenInput())
     enrollment_code = forms.CharField(label=_("Code"), label_suffix="")
+
     next = forms.CharField(required=False, widget=forms.HiddenInput())
     form = forms.CharField(required=True, widget=forms.HiddenInput(), initial=FORM_NAME)
 
