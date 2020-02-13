@@ -16,12 +16,25 @@ class VoterInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = "voter"
 
-    # readonly_fields = ('is_voter', 'is_enrolled', 'enrollment_code',)
     readonly_fields = ('is_voter', 'enrollment_code',)
 
 
 class UserAdmin(BaseUserAdmin):
-    inlines = (VoterInline,)
+    inlines = (VoterInline, )
+
+
+class ChoiceInline(admin.TabularInline):
+    model = Choice
+    extra = 3
+
+
+class ParticipationInline(admin.TabularInline):
+    model = Participation
+    extra = 1
+
+    # def get_queryset(self, request):
+    #     qs = super(ParticipationInline, self).get_queryset(request)
+    #     return qs.filter(voter.is_voter=True)
 
 
 class VoterAdmin(admin.ModelAdmin):
@@ -53,6 +66,7 @@ class VoterAdmin(admin.ModelAdmin):
         # _ = queryset.update(distribution_type=DownloadCode.PRINTED)
         response = TemplateResponse(request, 'open_choice_polls/admin_voter_export.html', {'entries': queryset})
         return response
+
     export_codes_to_html.short_description = _("Export selected Voters to HTML")
 
     # ToDo(frennkie) this requires admin to select (any) existing voter
@@ -61,6 +75,7 @@ class VoterAdmin(admin.ModelAdmin):
         if res:
             user_obj = res[0]
             self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
+
     generate_1_voter.short_description = _("Create 1 Voter")
 
     # ToDo(frennkie) this requires admin to select (any) existing voter
@@ -70,21 +85,10 @@ class VoterAdmin(admin.ModelAdmin):
             user_objs = [x.username for x in res]
             lst = ",".join(user_objs)
             self.message_user(request, "successfully generated 25 user: {}".format(lst))
+
     generate_25_voter.short_description = _("Create 25 Voters")
 
-
-class ChoiceInline(admin.TabularInline):
-    model = Choice
-    extra = 3
-
-
-class ParticipationInline(admin.TabularInline):
-    model = Participation
-    extra = 1
-
-    # def get_queryset(self, request):
-    #     qs = super(ParticipationInline, self).get_queryset(request)
-    #     return qs.filter(voter.is_voter=True)
+    inlines = (ParticipationInline, )
 
 
 class QuestionAdmin(admin.ModelAdmin):
@@ -131,7 +135,7 @@ class QuestionAdmin(admin.ModelAdmin):
                        'voting_duration',
                        'total_choices', 'total_approved_choices')
 
-    inlines = [ChoiceInline, ParticipationInline]
+    inlines = (ChoiceInline, ParticipationInline,)
 
     def save_model(self, request, obj, form, change):
         if obj.collection_end_date <= obj.collection_start_date:
