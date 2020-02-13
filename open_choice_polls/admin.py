@@ -11,18 +11,6 @@ from .forms import ChoiceReviewForm
 from .models import Choice, Question, Voter, Participation
 
 
-class VoterInline(admin.StackedInline):
-    model = Voter
-    can_delete = False
-    verbose_name_plural = "voter"
-
-    readonly_fields = ('is_voter', 'enrollment_code',)
-
-
-class UserAdmin(BaseUserAdmin):
-    inlines = (VoterInline, )
-
-
 class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 3
@@ -32,63 +20,68 @@ class ParticipationInline(admin.TabularInline):
     model = Participation
     extra = 1
 
-    # def get_queryset(self, request):
-    #     qs = super(ParticipationInline, self).get_queryset(request)
-    #     return qs.filter(voter.is_voter=True)
+
+class VoterInline(admin.StackedInline):
+    model = Voter
+    can_delete = False
+    verbose_name_plural = "voter"
+
+    readonly_fields = ('is_voter', 'enrollment_code',)
 
 
-class VoterAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_voter', 'is_enrolled', 'enrollment_code')
-    list_filter = ('is_voter', 'is_enrolled',)
-    search_fields = ['user__username']
+class ChoiceAdmin(admin.ModelAdmin):
+    form = ChoiceReviewForm
 
-    # readonly_fields = ('user', 'is_voter', 'is_enrolled', 'enrollment_code',)
-    readonly_fields = ('user', 'is_voter', 'enrollment_code',)
+    list_display = ('choice_text', 'choice_slug', 'question_text', 'review_status', 'votes')
+    list_filter = ('question__text', 'question__number', 'review_status',)
 
-    fieldsets = [
-        (None, {'fields': ['user',
-                           'is_voter',
-                           'is_enrolled',
-                           'enrollment_code',
-                           'enrollment_code_valid_until']}),
-    ]
+    def question_text(self, obj):
+        redirect_url = reverse('admin:open_choice_polls_question_change', args=(obj.question.id,))
+        return mark_safe("<a href='{}'>{}</a>".format(redirect_url, obj.question.text))
 
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
+    readonly_fields = ('choice_slug',)
 
-    actions = ["export_codes_to_html", "generate_1_voter", 'generate_25_voter']
+    actions = ["approve", "reject", "reset_review_status", "reset_votes"]
 
-    def export_codes_to_html(self, request, queryset):
-        # rows_updated = queryset.update(is_distributed=True)
-        # _ = queryset.update(distribution_type=DownloadCode.PRINTED)
-        response = TemplateResponse(request, 'open_choice_polls/admin_voter_export.html', {'entries': queryset})
-        return response
+    def approve(self, request, queryset):
+        rows_updated = queryset.update(review_status=Choice.APPROVED)
+        if rows_updated == 1:
+            message_bit = "1 choice was"
+        else:
+            message_bit = "%s choices were" % rows_updated
+        self.message_user(request, "%s successfully approved." % message_bit)
 
-    export_codes_to_html.short_description = _("Export selected Voters to HTML")
+    approve.short_description = _("Review Status: Approve")
 
-    # ToDo(frennkie) this requires admin to select (any) existing voter
-    def generate_1_voter(self, request, queryset):
-        res = Voter.create_voter(1, 30)
-        if res:
-            user_obj = res[0]
-            self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
+    def reject(self, request, queryset):
+        rows_updated = queryset.update(review_status=Choice.REJECTED)
+        if rows_updated == 1:
+            message_bit = "1 choice was"
+        else:
+            message_bit = "%s choices were" % rows_updated
+        self.message_user(request, "%s successfully rejected." % message_bit)
 
-    generate_1_voter.short_description = _("Create 1 Voter")
+    reject.short_description = _("Review Status: Reject")
 
-    # ToDo(frennkie) this requires admin to select (any) existing voter
-    def generate_25_voter(self, request, queryset):
-        res = Voter.create_voter(25, 30)
-        if res:
-            user_objs = [x.username for x in res]
-            lst = ",".join(user_objs)
-            self.message_user(request, "successfully generated 25 user: {}".format(lst))
+    def reset_review_status(self, request, queryset):
+        rows_updated = queryset.update(review_status=Choice.OPEN)
+        if rows_updated == 1:
+            message_bit = "Review status of 1 choice was"
+        else:
+            message_bit = "Review status of %s choices were" % rows_updated
+        self.message_user(request, "%s successfully reset." % message_bit)
 
-    generate_25_voter.short_description = _("Create 25 Voters")
+    reset_review_status.short_description = _("Review Status: Reset")
 
-    inlines = (ParticipationInline, )
+    def reset_votes(self, request, queryset):
+        rows_updated = queryset.update(votes=0)
+        if rows_updated == 1:
+            message_bit = "Votes of 1 choice was"
+        else:
+            message_bit = "Votes of %s choices were" % rows_updated
+        self.message_user(request, "%s successfully reset." % message_bit)
+
+    reset_votes.short_description = _("Votes: Reset to 0")
 
 
 class QuestionAdmin(admin.ModelAdmin):
@@ -151,59 +144,62 @@ class QuestionAdmin(admin.ModelAdmin):
         super(QuestionAdmin, self).save_model(request, obj, form, change)
 
 
-class ChoiceAdmin(admin.ModelAdmin):
-    form = ChoiceReviewForm
+class UserAdmin(BaseUserAdmin):
+    inlines = (VoterInline,)
 
-    list_display = ('choice_text', 'choice_slug', 'question_text', 'review_status', 'votes')
-    list_filter = ('question__text', 'question__number', 'review_status',)
 
-    def question_text(self, obj):
-        redirect_url = reverse('admin:open_choice_polls_question_change', args=(obj.question.id,))
-        return mark_safe("<a href='{}'>{}</a>".format(redirect_url, obj.question.text))
+class VoterAdmin(admin.ModelAdmin):
+    list_display = ('user', 'is_voter', 'is_enrolled', 'enrollment_code')
+    list_filter = ('is_voter', 'is_enrolled',)
+    search_fields = ['user__username']
 
-    readonly_fields = ('choice_slug',)
+    # readonly_fields = ('user', 'is_voter', 'is_enrolled', 'enrollment_code',)
+    readonly_fields = ('user', 'is_voter', 'enrollment_code',)
 
-    actions = ["approve", "reject", "reset_review_status", "reset_votes"]
+    fieldsets = [
+        (None, {'fields': ['user',
+                           'is_voter',
+                           'is_enrolled',
+                           'enrollment_code',
+                           'enrollment_code_valid_until']}),
+    ]
 
-    def approve(self, request, queryset):
-        rows_updated = queryset.update(review_status=Choice.APPROVED)
-        if rows_updated == 1:
-            message_bit = "1 choice was"
-        else:
-            message_bit = "%s choices were" % rows_updated
-        self.message_user(request, "%s successfully approved." % message_bit)
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
-    approve.short_description = _("Review Status: Approve")
+    actions = ["export_codes_to_html", "generate_1_voter", 'generate_25_voter']
 
-    def reject(self, request, queryset):
-        rows_updated = queryset.update(review_status=Choice.REJECTED)
-        if rows_updated == 1:
-            message_bit = "1 choice was"
-        else:
-            message_bit = "%s choices were" % rows_updated
-        self.message_user(request, "%s successfully rejected." % message_bit)
+    def export_codes_to_html(self, request, queryset):
+        # rows_updated = queryset.update(is_distributed=True)
+        # _ = queryset.update(distribution_type=DownloadCode.PRINTED)
+        response = TemplateResponse(request, 'open_choice_polls/admin_voter_export.html', {'entries': queryset})
+        return response
 
-    reject.short_description = _("Review Status: Reject")
+    export_codes_to_html.short_description = _("Export selected Voters to HTML")
 
-    def reset_review_status(self, request, queryset):
-        rows_updated = queryset.update(review_status=Choice.OPEN)
-        if rows_updated == 1:
-            message_bit = "Review status of 1 choice was"
-        else:
-            message_bit = "Review status of %s choices were" % rows_updated
-        self.message_user(request, "%s successfully reset." % message_bit)
+    # ToDo(frennkie) this requires admin to select (any) existing voter
+    def generate_1_voter(self, request, queryset):
+        res = Voter.create_voter(1, 30)
+        if res:
+            user_obj = res[0]
+            self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
 
-    reset_review_status.short_description = _("Review Status: Reset")
+    generate_1_voter.short_description = _("Create 1 Voter")
 
-    def reset_votes(self, request, queryset):
-        rows_updated = queryset.update(votes=0)
-        if rows_updated == 1:
-            message_bit = "Votes of 1 choice was"
-        else:
-            message_bit = "Votes of %s choices were" % rows_updated
-        self.message_user(request, "%s successfully reset." % message_bit)
+    # ToDo(frennkie) this requires admin to select (any) existing voter
+    def generate_25_voter(self, request, queryset):
+        res = Voter.create_voter(25, 30)
+        if res:
+            user_objs = [x.username for x in res]
+            lst = ",".join(user_objs)
+            self.message_user(request, "successfully generated 25 user: {}".format(lst))
 
-    reset_votes.short_description = _("Votes: Reset to 0")
+    generate_25_voter.short_description = _("Create 25 Voters")
+
+    inlines = (ParticipationInline,)
 
 
 # ToDo only needed in DEV
