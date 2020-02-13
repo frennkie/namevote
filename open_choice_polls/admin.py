@@ -128,7 +128,8 @@ class QuestionAdmin(admin.ModelAdmin):
                        'voting_duration',
                        'total_choices', 'total_approved_choices')
 
-    inlines = (ChoiceInline, ParticipationInline,)
+    # inlines = (ChoiceInline, ParticipationInline,)
+    inlines = (ChoiceInline, )
 
     def save_model(self, request, obj, form, change):
         if obj.collection_end_date <= obj.collection_start_date:
