@@ -81,7 +81,7 @@ class Voter(models.Model):
         return "{}-{}-{}".format(first, second, third)
 
     @classmethod
-    def create_voter(cls, amount=1, code_valid_timedelta_days=None):
+    def create_voter(cls, amount=1, code_valid_timedelta_days=None, question_id=None):
         if amount < 1:
             raise NotImplementedError("create at least 1 Voter!")
 
@@ -90,7 +90,7 @@ class Voter(models.Model):
         ids_rand = random.sample(range(settings.OPEN_CHOICE_POLLS_VOTER_RANGE_START,
                                        settings.OPEN_CHOICE_POLLS_VOTER_RANGE_END), amount)
 
-        ids_res = []
+        res = []
         for i in ids_rand:
             # Create user and save to the database
             voter_username = '{}{}'.format(prefix, str(i).zfill(3))
@@ -102,12 +102,19 @@ class Voter(models.Model):
                 user.voter.enrollment_code = enrollment_code
                 if code_valid_timedelta_days:
                     user.voter.enrollment_code_valid_until = timezone.now() + timedelta(days=code_valid_timedelta_days)
+
+                if question_id:
+                    try:
+                        question = Question.objects.get(pk=question_id)
+                        user.voter.participation_set.create(voter=user.voter, question=question, is_allowed=True)
+                    except Question.DoesNotExist:
+                        pass
                 user.save()
 
-                ids_res.append(user)
+                res.append(user)
             except IntegrityError:
                 break
-        return ids_res
+        return res
 
 
 @receiver(post_save, sender=User)

@@ -1,7 +1,6 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from django.contrib.sessions.models import Session
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -135,6 +134,8 @@ class QuestionAdmin(admin.ModelAdmin):
                        'total_choices', 'total_approved_choices',
                        'total_votes')
 
+    actions = ["generate_1_voter", 'generate_25_voter']
+
     # inlines = (ChoiceInline, ParticipationInline,)
     inlines = (ChoiceInline,)
 
@@ -150,6 +151,31 @@ class QuestionAdmin(admin.ModelAdmin):
                                  'Collection End date should be before Voting Start date! Question: “{}“'.format(
                                      obj.text))
         super(QuestionAdmin, self).save_model(request, obj, form, change)
+
+    def generate_1_voter(self, request, queryset):
+        res = Voter.create_voter(1, 30)
+        if res:
+            user_obj = res[0]
+            self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
+
+            for q in queryset.all():
+                Participation.objects.create(voter=user_obj.voter, question=q, is_allowed=True)
+                self.message_user(request, "added new user to: {}".format(q))
+
+    generate_1_voter.short_description = _("Create 1 Voter and assign to selected Questions")
+
+    def generate_25_voter(self, request, queryset):
+        res = Voter.create_voter(25, 30)
+        if res:
+            user_objs = [x.username for x in res]
+            # lst = ",".join(user_objs)
+            self.message_user(request, "successfully generated 25 user")
+
+            for user_obj in user_objs:
+                for q in queryset.all():
+                    Participation.objects.create(voter=user_obj.voter, question=q, is_allowed=True)
+
+    generate_25_voter.short_description = _("Create 25 Voters and assign to selected Questions")
 
 
 class UserAdmin(BaseUserAdmin):
@@ -178,7 +204,7 @@ class VoterAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-    actions = ["export_codes_to_html", "generate_1_voter", 'generate_25_voter']
+    actions = ["export_codes_to_html"]
 
     def export_codes_to_html(self, request, queryset):
         # rows_updated = queryset.update(is_distributed=True)
@@ -188,34 +214,7 @@ class VoterAdmin(admin.ModelAdmin):
 
     export_codes_to_html.short_description = _("Export selected Voters to HTML")
 
-    # ToDo(frennkie) this requires admin to select (any) existing voter
-    def generate_1_voter(self, request, queryset):
-        res = Voter.create_voter(1, 30)
-        if res:
-            user_obj = res[0]
-            self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
-
-    generate_1_voter.short_description = _("Create 1 Voter")
-
-    # ToDo(frennkie) this requires admin to select (any) existing voter
-    def generate_25_voter(self, request, queryset):
-        res = Voter.create_voter(25, 30)
-        if res:
-            user_objs = [x.username for x in res]
-            lst = ",".join(user_objs)
-            self.message_user(request, "successfully generated 25 user: {}".format(lst))
-
-    generate_25_voter.short_description = _("Create 25 Voters")
-
     inlines = (ParticipationInline,)
-
-
-# ToDo only needed in DEV
-class SessionAdmin(admin.ModelAdmin):
-    def _session_data(self, obj):
-        return obj.get_decoded()
-
-    list_display = ('session_key', '_session_data', 'expire_date')
 
 
 # Re-register UserAdmin
@@ -224,6 +223,5 @@ admin.site.register(User, UserAdmin)
 
 # Register other models
 admin.site.register(Voter, VoterAdmin)
-admin.site.register(Session, SessionAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Choice, ChoiceAdmin)
