@@ -183,11 +183,10 @@ class UserAdmin(BaseUserAdmin):
 
 
 class VoterAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_voter', 'is_enrolled', 'enrollment_code')
-    list_filter = ('is_voter', 'is_enrolled',)
-    search_fields = ['user__username']
+    list_display = ('user', 'is_voter', 'is_enrolled', 'enrollment_code', 'enrollment_code_is_distributed')
+    list_filter = ('is_voter', 'is_enrolled', 'enrollment_code_is_distributed')
+    search_fields = ['user__username', 'enrollment_code']
 
-    # readonly_fields = ('user', 'is_voter', 'is_enrolled', 'enrollment_code',)
     readonly_fields = ('user', 'is_voter', 'enrollment_code',)
 
     fieldsets = [
@@ -195,6 +194,7 @@ class VoterAdmin(admin.ModelAdmin):
                            'is_voter',
                            'is_enrolled',
                            'enrollment_code',
+                           'enrollment_code_is_distributed',
                            'enrollment_code_valid_until']}),
     ]
 
@@ -207,12 +207,11 @@ class VoterAdmin(admin.ModelAdmin):
     actions = ["export_codes_to_html"]
 
     def export_codes_to_html(self, request, queryset):
-        # rows_updated = queryset.update(is_distributed=True)
-        # _ = queryset.update(distribution_type=DownloadCode.PRINTED)
+        _ = queryset.update(enrollment_code_is_distributed=True)
         response = TemplateResponse(request, 'open_choice_polls/admin_voter_export.html', {'entries': queryset})
         return response
 
-    export_codes_to_html.short_description = _("Export selected Voters to HTML")
+    export_codes_to_html.short_description = _("Export selected Voters to HTML and set distributed")
 
     inlines = (ParticipationInline,)
 
