@@ -183,8 +183,8 @@ class UserAdmin(BaseUserAdmin):
 
 
 class VoterAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_voter', 'is_enrolled', 'enrollment_code', 'enrollment_code_is_distributed')
-    list_filter = ('is_voter', 'is_enrolled', 'enrollment_code_is_distributed')
+    list_display = ('user', 'is_enrolled', 'enrollment_code_is_distributed', 'enrollment_code',)
+    list_filter = ('is_enrolled', 'enrollment_code_is_distributed')
     search_fields = ['user__username', 'enrollment_code']
 
     readonly_fields = ('user', 'is_voter', 'enrollment_code',)
@@ -198,13 +198,16 @@ class VoterAdmin(admin.ModelAdmin):
                            'enrollment_code_valid_until']}),
     ]
 
+    actions = ["export_codes_to_html"]
+
     def get_actions(self, request):
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
 
-    actions = ["export_codes_to_html"]
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_voter=True)
 
     def export_codes_to_html(self, request, queryset):
         _ = queryset.update(enrollment_code_is_distributed=True)
