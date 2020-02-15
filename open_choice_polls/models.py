@@ -6,6 +6,7 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models, IntegrityError
+from django.db.models import Q
 from django.db.models.functions import Lower
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -23,9 +24,13 @@ SELECTED_LETTERS = 'ABCDEFGHKMNPQRSTUVWX'
 SELECTED_NUMBERS = '23456789'
 
 
+class ActiveVoterManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(Q(is_voter=True) & Q(is_enrolled=True))
+
+
 class Voter(models.Model):
-    class Meta:
-        ordering = ('user',)
+    # DATABASE FIELDS
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
@@ -41,6 +46,30 @@ class Voter(models.Model):
                                                        blank=True, null=True,
                                                        help_text=_("Leave empty for codes that never expire"))
 
+    # MANAGERS
+    active = ActiveVoterManager()
+
+    # META CLASS
+    class Meta:
+        ordering = ('user',)
+
+    # REPR and TO STRING METHOD
+    def __repr__(self):
+        return "<{0}: {1}>".format(
+            self.__class__.__name__,
+            self.user.username)
+
+    def __str__(self):
+        return self.user.username
+
+    # SAVE METHOD
+    def save(self, *args, **kwargs):
+        super(Voter, self).save(*args, **kwargs)
+
+    # ABSOLUTE URL METHOD
+    def get_absolute_url(self):
+        return reverse('open_choice_polls:voter-detail', kwargs={'username': self.user})
+
     @staticmethod
     def create_enrollment_code():
         first = get_random_string(5, SELECTED_LETTERS)
@@ -54,14 +83,6 @@ class Voter(models.Model):
         second = get_random_string(3, SELECTED_NUMBERS)
         third = get_random_string(4, SELECTED_LETTERS.lower())
         return "{}-{}-{}".format(first, second, third)
-
-    def __repr__(self):
-        return "<{0}: {1}>".format(
-            self.__class__.__name__,
-            self.user.username)
-
-    def __str__(self):
-        return self.user.username
 
     @classmethod
     def create_voter(cls, amount=1, code_valid_timedelta_days=None):
@@ -348,14 +369,3 @@ class Choice(TimeStampedModel, models.Model):
 
     def __str__(self):
         return self.choice_text
-
-    # SAVE METHOD
-    def save(self, *args, **kwargs):
-        if not self.choice_slug:
-            self.choice_slug = slugify(self.choice_text)
-
-        super(Choice, self).save(*args, **kwargs)
-
-    # ABSOLUTE URL METHOD
-    # def get_absolute_url(self):
-    #     return reverse('choice-details', kwargs={'pk': self.id})
