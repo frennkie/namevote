@@ -13,6 +13,17 @@
                         <form action="{% url 'open_choice_polls:vote' slug=question.slug id=question.id %}"
                               method="post">
                             {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                                <p class="text-danger">
+                                    <strong>{{ form.non_field_errors|striptags }}</strong></p>
+                            {% endif %}
+
+                            {% if form.choice.errors %}
+                                <p class="text-danger">
+                                    <strong>{{ form.choice.errors|striptags }}</strong></p>
+                            {% endif %}
+
                             {% for choice in choices_approved %}
                                 <input type="radio" name="choice" id="choice{{ forloop.counter }}"
                                        value="{{ choice.id }}">

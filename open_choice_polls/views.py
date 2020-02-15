@@ -1,10 +1,11 @@
 import logging
 import re
 
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -16,8 +17,8 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from .exceptions import ParticipationNotAllowed, ParticipationAllVotesUsed
-from .forms import ChoiceForm, SeLoginUserForm, SeLoginSignInForm, SeLoginEnrollForm
+from .exceptions import ParticipationNotAllowed, ParticipationAllVotesUsed, QuestionVoteNotActive
+from .forms import ChoiceForm, SeLoginUserForm, SeLoginSignInForm, SeLoginEnrollForm, VoteForm
 from .models import Choice, Participation, Question, Voter
 
 logger = logging.getLogger(__name__)
@@ -196,76 +197,34 @@ class QuestionDetailView(generic.DetailView):
         return context
 
 
-class VoterDetailView(generic.DetailView):
-    template_name = 'open_choice_polls/voter_detail.html'
-    model = Voter
-    context_object_name = 'voter'
-
-    slug_field = 'username'
-    slug_url_kwarg = 'username'
-
-    def get_object(self, queryset=None):
-        user_obj = get_object_or_404(User, username=self.kwargs.get('username'))
-
-        # admins can view all pages
-        if self.request.user.is_superuser:
-            return user_obj.voter
-        # only owner can view his page
-        elif self.request.user.username == user_obj.username:
-            return user_obj.voter
-        # otherwise redirect to 404 page
-        else:
-            raise Http404("Voter can not be found or accessed.")
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        qs = Participation.objects.filter(Q(voter=self.object) & Q(is_allowed=True)) \
-            .order_by('question__number')
-
-        context['participation_list'] = qs
-        return context
-
-
-class EnterVoteView(LoginRequiredMixin, generic.DetailView):
+class QuestionAddChoiceView(generic.UpdateView):
     model = Question
-    template_name = 'open_choice_polls/question_enter_vote.html'
+    template_name = 'open_choice_polls/question_update_form_add_choice.html'
     query_pk_and_slug = True
-    object = None
 
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            return super().dispatch(request, *args, **kwargs)
-        except (ParticipationAllVotesUsed, ParticipationNotAllowed):
-            return redirect(reverse('open_choice_polls:results',
-                                    kwargs={'slug': self.object.slug, 'id': self.object.id}))
+    form_class = ChoiceForm
 
     def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
-
-        # get data for vote
-        try:
-            qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
-                                              Q(question__id=self.object.id) &
-                                              Q(is_allowed=True))
-            participation = qs.get()
-            context['participation'] = participation
-
-            choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED)
-            context['choices_approved'] = choices_approved
-
-            if participation.votes_cast >= self.object.votes_per_session:
-                raise ParticipationAllVotesUsed("All votes used up.")
-
-        except Participation.DoesNotExist:
-            logger.info("User ({}) not allowed to vote. Displaying results only.".format(self.request.user))
-            raise ParticipationNotAllowed("Not allowed to participate in this question.")
+        context['choices_approved'] = Choice.approved.filter(question=self.object.id).order_by(Lower('choice_text'))
+        context['choices_open'] = Choice.open.filter(question=self.object.id).order_by(Lower('choice_text'))
+        context['choices_rejected'] = Choice.rejected.filter(question=self.object.id).order_by(Lower('choice_text'))
 
         return context
 
+    def form_valid(self, form):
+        self.object.choice_set.create(choice_text=form.cleaned_data.get('choice_text'), votes=0)
+        messages.success(self.request, 'Suggestion was added successfully!')
 
-class ResultsView(generic.DetailView):
+        return HttpResponseRedirect(reverse('open_choice_polls:choices',
+                                            kwargs={'slug': self.object.slug, 'id': self.object.id}))
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Input validation failed. See below for details.')
+        return super().form_invalid(form)
+
+
+class QuestionResultsView(generic.DetailView):
     model = Question
     template_name = 'open_choice_polls/question_results.html'
     query_pk_and_slug = True
@@ -299,106 +258,62 @@ class ResultsView(generic.DetailView):
         return context
 
 
-class AddChoiceView(generic.DetailView):
+class QuestionEnterVoteView(LoginRequiredMixin, generic.UpdateView):
     model = Question
-    template_name = 'open_choice_polls/question_add_choice.html'
+    template_name = 'open_choice_polls/question_enter_vote.html'
     query_pk_and_slug = True
+
+    form_class = VoteForm
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except (ParticipationAllVotesUsed, ParticipationNotAllowed, QuestionVoteNotActive):
+            return redirect(reverse('open_choice_polls:results',
+                                    kwargs={'slug': self.object.slug, 'id': self.object.id}))
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        context['choices_approved'] = Choice.approved.filter(question=self.object.id)
-        context['choices_open'] = Choice.open.filter(question=self.object.id)
-        context['choices_rejected'] = Choice.rejected.filter(question=self.object.id)
+        if not self.object.voting_is_active():
+            raise QuestionVoteNotActive("Sorry - vote is not active.")
 
-        context['form'] = ChoiceForm
+        # get data for vote
+        try:
+            qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
+                                              Q(question__id=self.object.id) &
+                                              Q(is_allowed=True))
+            participation = qs.get()
+            context['participation'] = participation
+
+            choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED)
+            context['choices_approved'] = choices_approved
+
+            if participation.votes_cast >= self.object.votes_per_session:
+                raise ParticipationAllVotesUsed("All votes used up.")
+
+        except Participation.DoesNotExist:
+            logger.info("User ({}) not allowed to vote. Displaying results only.".format(self.request.user))
+            raise ParticipationNotAllowed("Not allowed to participate in this question.")
 
         return context
 
+    def form_valid(self, form):
+        clean_choice = form.cleaned_data.get('choice')
 
-def add_choice(request, id, slug=None, *args, **kwargs):
-    question = get_object_or_404(Question, id=id)
+        # get data for vote
+        try:
+            qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
+                                              Q(question__id=self.object.id) &
+                                              Q(is_allowed=True))
+            participation = qs.get()
 
-    form = ChoiceForm(request.POST)
+        except Participation.DoesNotExist:
+            logger.info("User ({}) not allowed to vote. Displaying results only.".format(self.request.user))
+            raise ParticipationNotAllowed("Not allowed to participate in this question.")
 
-    if not request.POST.get('choice_text', None):
-        error_message = _("Choice is empty")
-    else:
-        form.is_valid()
-        choice_text = form.cleaned_data.get('choice_text', None)
-
-        if question.choice_validation_regex and not re.compile(question.choice_validation_regex).search(choice_text):
-            error_message = _("Failed Regex. Hint: {}".format(question.choice_validation_hint))
-        else:
-            try:
-                question.choice_set.get(choice_slug=slugify(choice_text))
-            except (KeyError, Choice.DoesNotExist):
-                question.choice_set.create(choice_text=choice_text, votes=0)
-                # Always return an HttpResponseRedirect after successfully dealing
-                # with POST data. This prevents data from being posted twice if a
-                # user hits the Back button.
-                return HttpResponseRedirect(reverse('open_choice_polls:choices',
-                                                    kwargs={'slug': question.slug, 'id': question.id}))
-            except MultipleObjectsReturned:
-                error_message = " {} - this exists already (multiple times) - try something else".format(
-                    choice_text)
-            else:
-                error_message = " {} - this exists already - try something else".format(choice_text)
-
-    # Redisplay the question voting form.
-    return render(request, 'open_choice_polls/question_add_choice.html', {
-        'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
-        'choices_open': Choice.open.filter(question=question.id).order_by(Lower('choice_text')),
-        'choices_rejected': Choice.rejected.filter(question=question.id).order_by(Lower('choice_text')),
-        'question': question,
-        'form': ChoiceForm,
-        'error_message': error_message,
-    })
-
-
-def vote(request, id, slug=None, *args, **kwargs):
-    question = get_object_or_404(Question, id=id)
-
-    # try:
-
-    qs = Participation.objects.filter(Q(voter__user__id=request.user.id) &
-                                      Q(question__id=question.id))
-    participation = qs.select_for_update().get()
-
-    # except ObjectDoesNotExist:
-    #     # ToDo(frennkie) what to do here?
-    #     pass
-
-    if not question.voting_is_active:
-        return render(request, 'open_choice_polls/question_results.html', {
-            'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
-            'participation': participation,
-            'question': question,
-            'error_message': "Sorry - vote is not active.",
-        })
-
-    try:
-        selected_choice = question.choice_set.get(id=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'open_choice_polls/question_enter_vote.html', {
-            'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
-            'choices_open': Choice.open.filter(question=question.id).order_by(Lower('choice_text')),
-            'choices_rejected': Choice.rejected.filter(question=question.id).order_by(Lower('choice_text')),
-            'participation': participation,
-            'question': question,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        # check whether allowed votes is exceeded
-        if participation.votes_cast >= question.votes_per_session:
-            return render(request, 'open_choice_polls/question_results.html', {
-                'choices_approved': Choice.approved.filter(question=question.id).order_by(Lower('choice_text')),
-                'participation': participation,
-                'question': question,
-                'error_message': "Sorry - you have already used up all votes",
-            })
+        selected_choice = get_object_or_404(Choice, id=clean_choice)
 
         # only allow votes for approved choices
         if selected_choice.review_status == Choice.APPROVED:
@@ -412,8 +327,42 @@ def vote(request, id, slug=None, *args, **kwargs):
                 participation.save()
                 participation.refresh_from_db()
 
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
+        messages.success(self.request, 'Vote successful!')
+
         return HttpResponseRedirect(reverse('open_choice_polls:results',
-                                            kwargs={'slug': question.slug, 'id': question.id}))
+                                            kwargs={'slug': self.object.slug, 'id': self.object.id}))
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Input validation failed. See below for details.')
+        return super().form_invalid(form)
+
+
+class VoterDetailView(generic.DetailView):
+    template_name = 'open_choice_polls/voter_detail.html'
+    model = Voter
+    context_object_name = 'voter'
+
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
+
+    def get_object(self, queryset=None):
+        user_obj = get_object_or_404(User, username=self.kwargs.get('username'))
+
+        # admins can view all pages
+        if self.request.user.is_superuser:
+            return user_obj.voter
+        # only owner can view his page
+        elif self.request.user.username == user_obj.username:
+            return user_obj.voter
+        # otherwise redirect to 404 page
+        else:
+            raise Http404("Voter can not be found or accessed.")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        qs = Participation.objects.filter(Q(voter=self.object) & Q(is_allowed=True)) \
+            .order_by('question__number')
+
+        context['participation_list'] = qs
+        return context

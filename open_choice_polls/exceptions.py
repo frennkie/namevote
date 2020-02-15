@@ -6,3 +6,8 @@ class ParticipationNotAllowed(Exception):
 class ParticipationAllVotesUsed(Exception):
     """The voter has used up all votes for question"""
     pass
+
+
+class QuestionVoteNotActive(Exception):
+    """The question is not active for voting"""
+    pass
