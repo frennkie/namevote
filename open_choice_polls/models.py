@@ -41,6 +41,9 @@ class Voter(models.Model):
     enrollment_code = models.CharField(max_length=80, blank=True, editable=False,
                                        verbose_name=_('Enrollment Code'))
 
+    enrollment_code_is_distributed = models.BooleanField(default=False, editable=True,
+                                                         verbose_name=_('Is Distributed?'))
+
     enrollment_code_valid_until = models.DateTimeField(verbose_name=_('Enrollment Code valid until'),
                                                        blank=True, null=True,
                                                        help_text=_("Leave empty for codes that never expire"))
@@ -128,7 +131,7 @@ def save_user_profile(sender, instance, **kwargs):
     try:
         instance.voter.save()
     except Voter.DoesNotExist:
-        print("does not exist")  # ToDo(frennkie)
+        pass
 
 
 class Question(models.Model):
