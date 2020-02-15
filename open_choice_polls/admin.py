@@ -200,11 +200,11 @@ class VoterAdmin(admin.ModelAdmin):
 
     actions = ["export_codes_to_html"]
 
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
+    # def get_actions(self, request):
+    #     actions = super().get_actions(request)
+    #     # if 'delete_selected' in actions:
+    #         # del actions['delete_selected']
+    #     return actions
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_voter=True)

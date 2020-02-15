@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, IntegrityError
 from django.db.models import Q
 from django.db.models.functions import Lower
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -132,6 +132,12 @@ def save_user_profile(sender, instance, **kwargs):
         instance.voter.save()
     except Voter.DoesNotExist:
         pass
+
+
+@receiver(post_delete, sender=Voter)
+def post_delete_user(sender, instance, *args, **kwargs):
+    if instance.user:  # just in case user is not specified
+        instance.user.delete()
 
 
 class Question(models.Model):
