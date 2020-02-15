@@ -128,7 +128,7 @@ def save_user_profile(sender, instance, **kwargs):
     try:
         instance.voter.save()
     except Voter.DoesNotExist:
-        print("does not exist")  # ToDo(frennkie)
+        pass
 
 
 class Question(models.Model):
