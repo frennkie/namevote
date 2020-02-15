@@ -75,7 +75,7 @@
                         <div class="card border-success mb-3">
                             <ul class="list-group">
                                 <li class="list-group-item list-group-item-success">{% trans "Approved" %}
-                                    ({{ choices_approved|length }})
+                                    ({{ choices_approved.count }})
                                 </li>
                                 {% for choice in choices_approved %}
                                     <li class="list-group-item">{{ choice.choice_text }}</li>
@@ -89,7 +89,7 @@
                         <div class="card border-dark mb-3">
                             <ul class="list-group">
                                 <li class="list-group-item list-group-item-secondary">{% trans "Not yet reviewed" %}
-                                    ({{ choices_open|length }})
+                                    ({{ choices_open.count }})
                                 </li>
                                 {% for choice in choices_open %}
                                     <li class="list-group-item">{{ choice.choice_text }}</li>
@@ -104,7 +104,7 @@
 
                             <ul class="list-group">
                                 <li class="list-group-item list-group-item-danger">{% trans "Rejected" %}
-                                    ({{ choices_rejected|length }})
+                                    ({{ choices_rejected.count }})
                                 </li>
                                 {% for choice in choices_rejected %}
                                     <li class="list-group-item">{{ choice.choice_text }}</li>
