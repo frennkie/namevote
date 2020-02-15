@@ -26,13 +26,11 @@ SELECTED_NUMBERS = '23456789'
 
 class ActiveVoterManager(models.Manager):
     def get_queryset(self):
-        # return super().get_queryset().filter(Q(is_voter=True) & Q(is_enrolled=True))
         return super().get_queryset().filter(Q(is_voter=True) & Q(is_enrolled=True))
 
 
 class Voter(models.Model):
     # DATABASE FIELDS
-
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     is_voter = models.BooleanField(default=False, editable=False,
@@ -63,10 +61,6 @@ class Voter(models.Model):
 
     def __str__(self):
         return self.user.username
-
-    # SAVE METHOD
-    def save(self, *args, **kwargs):
-        super(Voter, self).save(*args, **kwargs)
 
     # ABSOLUTE URL METHOD
     def get_absolute_url(self):
@@ -110,10 +104,8 @@ class Voter(models.Model):
                     user.voter.enrollment_code_valid_until = timezone.now() + timedelta(days=code_valid_timedelta_days)
                 user.save()
 
-                # self.stdout.write(self.style.SUCCESS('Successfully created 1 voter: {}'.format(voter_username)))
                 ids_res.append(user)
             except IntegrityError:
-                # self.stdout.write(self.style.WARNING('Failed to create 1 voter: {}'.format(voter_username)))
                 break
         return ids_res
 
@@ -133,9 +125,7 @@ def save_user_profile(sender, instance, **kwargs):
 
 
 class Question(models.Model):
-    class Meta:
-        ordering = ('-created',)
-
+    # DATABASE FIELDS
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # incrementing unique numeric identifier (e.g. used for "Q034...")
@@ -174,8 +164,52 @@ class Question(models.Model):
 
     voter_participation = models.ManyToManyField(Voter, through='Participation')
 
+    # MANAGERS
+    objects = models.Manager()  # default
+
+    # META CLASS
+    class Meta:
+        ordering = ('-created',)
+        get_latest_by = 'created'
+
+    # REPR and TO STRING METHOD
+    def __repr__(self):
+        return "<{0}: {1}".format(
+            self.__class__.__name__,
+            self.number_text)
+
+    def __str__(self):
+        return self.number_text
+
+    # SAVE METHOD
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.text)
+
+        # This means that the model isn't saved to the database yet
+        if self._state.adding:
+            # Get the maximum display_id value from the database
+            last_number = Question.objects.all().aggregate(largest=models.Max('number'))['largest']
+            if last_number is None:
+                last_number = 0
+
+            # aggregate can return None! Check it first.
+            # If it isn't none, just use the last ID specified (which should be the greatest) and add one to it
+            if last_number is not None:
+                self.number = last_number + 1
+
+        super().save(*args, **kwargs)
+
+    # ABSOLUTE URL METHOD
     def get_absolute_url(self):
         return reverse('open_choice_polls:question-detail', kwargs={'slug': self.slug, 'id': self.id})
+
+    def clean(self):
+        if self.choice_validation_regex:
+            try:
+                re.compile(self.choice_validation_regex)
+            except re.error:
+                raise ValidationError("invalid regex for choice validation")
 
     def collection_is_active(self):
         now = timezone.now()
@@ -258,46 +292,15 @@ class Question(models.Model):
             total += choice.votes
         return total
 
-    def __repr__(self):
-        return "<{0}: {1}".format(
-            self.__class__.__name__,
-            self.number_text)
-
-    def __str__(self):
-        return self.number_text
-
-    def clean(self):
-        if self.choice_validation_regex:
-            try:
-                re.compile(self.choice_validation_regex)
-            except re.error:
-                raise ValidationError("invalid regex for choice validation")
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.text)
-
-        # This means that the model isn't saved to the database yet
-        if self._state.adding:
-            # Get the maximum display_id value from the database
-            last_number = Question.objects.all().aggregate(largest=models.Max('number'))['largest']
-            if last_number is None:
-                last_number = 0
-
-            # aggregate can return None! Check it first.
-            # If it isn't none, just use the last ID specified (which should be the greatest) and add one to it
-            if last_number is not None:
-                self.number = last_number + 1
-
-        super(Question, self).save(*args, **kwargs)
-
 
 class Participation(models.Model):
+    # DATABASE FIELDS
     voter = models.ForeignKey(Voter, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_allowed = models.BooleanField(default=False, help_text=_('Is participation (vote) allowed?'))
     votes_cast = models.PositiveIntegerField(default=0, help_text=_('Number of votes cast no Question'))
 
+    # REPR and TO STRING METHOD
     def __repr__(self):
         return "<{}: {} {} {} ({})>".format(
             self.__class__.__name__,
