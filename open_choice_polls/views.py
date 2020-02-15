@@ -3,7 +3,7 @@ import re
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
 from django.db.models import Q
