@@ -6,6 +6,7 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models, IntegrityError
+from django.db.models.functions import Lower
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
@@ -302,6 +303,17 @@ class RejectedChoiceManager(models.Manager):
 
 
 class Choice(TimeStampedModel, models.Model):
+    # CHOICES
+    APPROVED = 'APPROVED'
+    OPEN = 'OPEN'
+    REJECTED = 'REJECTED'
+    REVIEW_STATUS_CHOICES = (
+        (APPROVED, mark_safe('&#10004; ({})'.format(_('approved')))),
+        (OPEN, mark_safe('&#63; ({})'.format(_('not yet reviewed')))),
+        (REJECTED, mark_safe('&#10005; ({})'.format(_('rejected')))),
+    )
+
+    # DATABASE FIELDS
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
@@ -311,35 +323,39 @@ class Choice(TimeStampedModel, models.Model):
 
     votes = models.IntegerField(default=0)
 
-    APPROVED = 'APPROVED'
-    OPEN = 'OPEN'
-    REJECTED = 'REJECTED'
-    REVIEW_STATUS_CHOICES = (
-        (APPROVED, mark_safe('&#10004; ({})'.format(_('approved')))),
-        (OPEN, mark_safe('&#63; ({})'.format(_('not yet reviewed')))),
-        (REJECTED, mark_safe('&#10005; ({})'.format(_('rejected')))),
-    )
     review_status = models.CharField(verbose_name=_("review status"), max_length=8,
                                      choices=REVIEW_STATUS_CHOICES, default=OPEN)
 
     review_remark = models.CharField(max_length=200, blank=True)
 
-    # Managers
+    # MANAGERS
     objects = models.Manager()  # default
     approved = ApprovedChoiceManager()
     open = OpenChoiceManager()
     rejected = RejectedChoiceManager()
 
-    def __str__(self):
-        return self.choice_text
+    # META CLASS
+    class Meta:
+        verbose_name = 'choice'
+        verbose_name_plural = 'choices'
+        ordering = [Lower('choice_text')]
 
+    # REPR and TO STRING METHOD
     def __repr__(self):
         return "<{0}: {1}>".format(
             self.__class__.__name__,
             self.choice_text)
 
+    def __str__(self):
+        return self.choice_text
+
+    # SAVE METHOD
     def save(self, *args, **kwargs):
         if not self.choice_slug:
             self.choice_slug = slugify(self.choice_text)
 
         super(Choice, self).save(*args, **kwargs)
+
+    # ABSOLUTE URL METHOD
+    # def get_absolute_url(self):
+    #     return reverse('choice-details', kwargs={'pk': self.id})

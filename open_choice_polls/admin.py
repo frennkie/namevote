@@ -15,10 +15,14 @@ class ChoiceInline(admin.TabularInline):
     model = Choice
     extra = 3
 
+    readonly_fields = ('votes',)
+
 
 class ParticipationInline(admin.TabularInline):
     model = Participation
     extra = 1
+
+    readonly_fields = ('votes_cast',)
 
 
 class VoterInline(admin.StackedInline):
@@ -39,7 +43,7 @@ class ChoiceAdmin(admin.ModelAdmin):
         redirect_url = reverse('admin:open_choice_polls_question_change', args=(obj.question.id,))
         return mark_safe("<a href='{}'>{}</a>".format(redirect_url, obj.question.text))
 
-    readonly_fields = ('choice_slug',)
+    readonly_fields = ('choice_slug', 'votes',)
 
     actions = ["approve", "reject", "reset_review_status", "reset_votes"]
 
@@ -131,7 +135,7 @@ class QuestionAdmin(admin.ModelAdmin):
                        'total_votes')
 
     # inlines = (ChoiceInline, ParticipationInline,)
-    inlines = (ChoiceInline, )
+    inlines = (ChoiceInline,)
 
     def save_model(self, request, obj, form, change):
         if obj.collection_end_date <= obj.collection_start_date:

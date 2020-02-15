@@ -32,7 +32,7 @@
                             {% if question.show_voting_results %}
 
                                 <div class="charts">
-                                    {% for choice in choices_approved %}
+                                    {% for choice in choices_by_votes %}
                                         <h5>{% percentage question choice as choice_percentage %}
                                             {{ choice.choice_text }} ({{ choice.votes }}
                                             vote{{ choice.votes|pluralize }})</h5>
@@ -54,7 +54,7 @@
 
                         {% else %}
                             <div class="charts">
-                                {% for choice in choices_approved %}
+                                {% for choice in choices_by_votes %}
                                     {% percentage question choice as choice_percentage %}
                                     {{ choice.choice_text }} ({{ choice.votes }} vote{{ choice.votes|pluralize }})
                                     <div class="charts__chart chart--lg"
@@ -70,12 +70,22 @@
 
                     <div class="card-footer">
                         {% if question.voting_is_active %}
-                            You have voted <b>{{ participation.votes_cast }}</b>
-                            of <b>{{ question.votes_per_session }}</b> time{{ question.votes_per_session|pluralize }}
-                            {% if participation.votes_cast < question.votes_per_session %}
-                                -<a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}">Vote
-                                again? </a>
+                            {% if user.is_authenticated %}
+                                {% if participation %}
+                                    You have voted <b>{{ participation.votes_cast }}</b>
+                                    of <b>{{ question.votes_per_session }}</b>
+                                    time{{ question.votes_per_session|pluralize }}.
+                                    {% if participation.votes_cast < question.votes_per_session %}
+                                        {% trans "You may vote again below." %}
+                                    {% endif %}
+                                {% else %}
+                                    {% trans "Sorry - you are not allowed to vote on this quesion." %} User: {{ user }}
+                                {% endif %}
+                            {% else %}
+                                {% trans "Please enroll or sign-in to vote" %}
                             {% endif %}
+                        {% else %}
+                            {% trans "Vote not active." %}
                         {% endif %}
                     </div>
 
