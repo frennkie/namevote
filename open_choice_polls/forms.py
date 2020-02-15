@@ -2,9 +2,11 @@ import re
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.contrib import messages
+from django.core.exceptions import MultipleObjectsReturned
 from django.utils.translation import gettext_lazy as _
 
-from .models import Choice
+from .models import Choice, Question
 
 
 class SeLoginUserForm(forms.ModelForm):
@@ -84,6 +86,28 @@ class ChoiceForm(forms.ModelForm):
         data = self.cleaned_data['choice_text']
         return re.sub(' +', ' ', data.strip())
 
+    def clean(self):
+        cleaned_data = super().clean()
+        clean_choice_text = cleaned_data['choice_text']
+
+        # check regex
+        if self.instance.choice_validation_regex and \
+                not re.compile(self.instance.choice_validation_regex).search(clean_choice_text):
+            raise forms.ValidationError("Failed Regex. Hint: {}".format(self.instance.choice_validation_hint))
+
+        # check duplicates
+        try:
+            self.instance.choice_set.get(choice_text=clean_choice_text)
+            raise forms.ValidationError("Suggestion exists already - "
+                                        "try something else: {}".format(clean_choice_text))
+        except MultipleObjectsReturned:
+            raise forms.ValidationError("Suggestion exists already (multiple times) - "
+                                        "try something else: {}".format(clean_choice_text))
+        except Choice.DoesNotExist:
+            pass  # all good
+
+        return cleaned_data
+
 
 class ChoiceReviewForm(forms.ModelForm):
     class Meta:
@@ -97,3 +121,26 @@ class ChoiceReviewForm(forms.ModelForm):
         initial=Choice.OPEN,
         widget=forms.RadioSelect,
     )
+
+
+class VoteForm(forms.ModelForm):
+    choice = forms.UUIDField(label=_("Choice"), label_suffix="", required=True)
+
+    class Meta:
+        model = Question
+        fields = ['choice']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        clean_choice = cleaned_data['choice']
+
+        # make sure this Choice exists for this Question
+        try:
+            self.instance.choice_set.get(pk=clean_choice)
+        except Choice.DoesNotExist as err:
+            raise forms.ValidationError("Not found: {} - {}".format(clean_choice, err))
+
+        # check that user is has not yet used up all votes
+        # if participation.votes_cast >= self.object.votes_per_session:
+
+        return cleaned_data

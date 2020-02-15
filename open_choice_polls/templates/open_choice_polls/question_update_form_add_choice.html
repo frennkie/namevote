@@ -24,24 +24,34 @@
                         </div>
 
                         <div class="card-body">
-                            <form action="{% url 'open_choice_polls:add_choice' slug=question.slug id=question.id %}"
-                                  method="post">
+
+                            <form action="" method="post">
                                 {% csrf_token %}
 
-                                {{ form.non_field_errors }}
-                                <div class="input-group mb-3">
+                                {#                                {% if form.has_error %}#}
+                                {#                                    <p class="text-danger">#}
+                                {#                                        Please correct the errors below.</p>#}
+                                {#                                {% endif %}#}
 
-                                    {{ form.choice_text.errors }}
+                                {% if form.non_field_errors %}
+                                    <p class="text-danger">
+                                        <strong>{{ form.non_field_errors|striptags }}</strong></p>
+                                {% endif %}
+
+                                {% if form.choice_text.errors %}
+                                    <p class="text-danger">
+                                        <strong>{{ form.choice_text.errors|striptags }}</strong></p>
+                                {% endif %}
+
+                                <div class="input-group mb-3">
                                     {{ form.choice_text }}
                                     {% if form.choice_text.help_text %}
                                         <p class="help">{{ form.choice_text.help_text|safe }}</p>
                                     {% endif %}
-
                                     <div class="input-group-append">
                                         <button class="btn btn-primary btn-lg" type="submit">Add</button>
                                     </div>
                                 </div>
-
                             </form>
                         </div>
 

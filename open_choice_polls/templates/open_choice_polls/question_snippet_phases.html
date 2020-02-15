@@ -105,7 +105,7 @@
                 <div class="card-footer text-right">
 
                     {% if question.voting_is_active %}
-                        <a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}"
+                        <a href="{% url 'open_choice_polls:vote' slug=question.slug id=question.id %}"
                            class="btn btn-success mb-1">{% trans "Cast Vote" %}</a>
 
                         {% if question.show_voting_results %}
@@ -117,12 +117,12 @@
                         {% endif %}
 
                     {% elif question.voting_is_in_past %}
-                        <a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}"
+                        <a href="{% url 'open_choice_polls:vote' slug=question.slug id=question.id %}"
                            class="btn btn-secondary mb-1 disabled">{% trans "Cast Vote" %}</a>
                         <a href="{% url 'open_choice_polls:results' slug=question.slug id=question.id %}"
                            class="btn btn-info mb-1">{% trans "Vote Results" %}</a>
                     {% elif question.voting_is_in_future %}
-                        <a href="{% url 'open_choice_polls:enter_vote' slug=question.slug id=question.id %}"
+                        <a href="{% url 'open_choice_polls:vote' slug=question.slug id=question.id %}"
                            class="btn btn-secondary mb-1 disabled">{% trans "Cast Vote" %}</a>
                         <a href="{% url 'open_choice_polls:results' slug=question.slug id=question.id %}"
                            class="btn btn-secondary mb-1 disabled">{% trans "Vote Results" %}</a>

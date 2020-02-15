@@ -57,7 +57,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(BASE_DIR, "..", "logs", "namevote.log"),
-            'maxBytes': 1024*1024*5,  # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
         },
@@ -65,7 +65,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(BASE_DIR, "..", "logs", "django_request.log"),
-            'maxBytes': 1024*1024*5,  # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
         },
@@ -87,7 +87,6 @@ LOGGING = {
         },
     }
 }
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -165,8 +164,8 @@ USE_L10N = True
 USE_TZ = True
 
 LANGUAGES = [
-  ('de', _('German')),
-  ('en', _('English')),
+    ('de', _('German')),
+    ('en', _('English')),
 ]
 
 LOCALE_PATHS = [
