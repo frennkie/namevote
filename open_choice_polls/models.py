@@ -26,6 +26,7 @@ SELECTED_NUMBERS = '23456789'
 
 class ActiveVoterManager(models.Manager):
     def get_queryset(self):
+        # return super().get_queryset().filter(Q(is_voter=True) & Q(is_enrolled=True))
         return super().get_queryset().filter(Q(is_voter=True) & Q(is_enrolled=True))
 
 
@@ -47,6 +48,7 @@ class Voter(models.Model):
                                                        help_text=_("Leave empty for codes that never expire"))
 
     # MANAGERS
+    objects = models.Manager()  # default
     active = ActiveVoterManager()
 
     # META CLASS
