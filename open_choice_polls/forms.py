@@ -89,7 +89,7 @@ class ChoiceReviewForm(forms.ModelForm):
     class Meta:
         model = Choice
 
-        fields = ['question', 'choice_text', 'review_status', 'votes']
+        fields = ['question', 'choice_text', 'review_status', 'review_remark']
 
     review_status = forms.ChoiceField(
         label='Review',

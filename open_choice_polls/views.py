@@ -1,8 +1,9 @@
+import logging
 import re
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
 from django.db.models import Q
@@ -15,8 +16,11 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
+from .exceptions import ParticipationNotAllowed, ParticipationAllVotesUsed
 from .forms import ChoiceForm, SeLoginUserForm, SeLoginSignInForm, SeLoginEnrollForm
 from .models import Choice, Participation, Question, Voter
+
+logger = logging.getLogger(__name__)
 
 
 def selogin_user(request, *args, **kwargs):
@@ -224,34 +228,35 @@ class EnterVoteView(LoginRequiredMixin, generic.DetailView):
     query_pk_and_slug = True
     object = None
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
-        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
-                                          Q(question__id=self.object.id) &
-                                          Q(is_allowed=True))
-        participation = qs.get()
-        context['participation'] = participation
-
-        if participation.votes_cast >= self.object.votes_per_session:
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except (ParticipationAllVotesUsed, ParticipationNotAllowed):
             return redirect(reverse('open_choice_polls:results',
                                     kwargs={'slug': self.object.slug, 'id': self.object.id}))
-
-        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
-                                          Q(question__id=self.object.id) &
-                                          Q(is_allowed=True))
-        participation = qs.get()
-        context['participation'] = participation
+        # get data for vote
+        try:
+            qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
+                                              Q(question__id=self.object.id) &
+                                              Q(is_allowed=True))
+            participation = qs.get()
+            context['participation'] = participation
 
-        choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED).order_by(Lower('choice_text'))
-        context['choices_approved'] = choices_approved
+            choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED)
+            context['choices_approved'] = choices_approved
+
+            if participation.votes_cast >= self.object.votes_per_session:
+                raise ParticipationAllVotesUsed("All votes used up.")
+
+        except Participation.DoesNotExist:
+            logger.info("User ({}) not allowed to vote. Displaying results only.".format(self.request.user))
+            raise ParticipationNotAllowed("Not allowed to participate in this question.")
+
         return context
 
 
@@ -264,13 +269,28 @@ class ResultsView(generic.DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
-                                          Q(question__id=self.object.id))
-        participation = qs.get()
-        context['participation'] = participation
+        # get sorted results
+        choices_by_votes = self.object.choice_set.filter(review_status=Choice.APPROVED).order_by('-votes')
+        context['choices_by_votes'] = choices_by_votes
 
-        choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED).order_by('-votes')
-        context['choices_approved'] = choices_approved
+        if self.request.user.is_authenticated:
+            # try to get data for follow-up vote
+            try:
+                qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) &
+                                                  Q(question__id=self.object.id) &
+                                                  Q(is_allowed=True))
+                participation = qs.get()
+                context['participation'] = participation
+
+                choices_approved = self.object.choice_set.filter(review_status=Choice.APPROVED)
+                context['choices_approved'] = choices_approved
+            except Participation.DoesNotExist:
+                print("User ({}) not allowed to vote. Displaying results only.".format(self.request.user))
+                logger.info("User ({}) not allowed to vote. Displaying results only.".format(self.request.user))
+        else:
+            print("Not signed-in. Displaying results only.".format(self.request.user))
+            logger.info("Not signed-in. Displaying results only.".format(self.request.user))
+
         return context
 
 
@@ -283,9 +303,9 @@ class AddChoiceView(generic.DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        context['choices_approved'] = Choice.approved.filter(question=self.object.id).order_by(Lower('choice_text'))
-        context['choices_open'] = Choice.open.filter(question=self.object.id).order_by(Lower('choice_text'))
-        context['choices_rejected'] = Choice.rejected.filter(question=self.object.id).order_by(Lower('choice_text'))
+        context['choices_approved'] = Choice.approved.filter(question=self.object.id)
+        context['choices_open'] = Choice.open.filter(question=self.object.id)
+        context['choices_rejected'] = Choice.rejected.filter(question=self.object.id)
 
         context['form'] = ChoiceForm
 
