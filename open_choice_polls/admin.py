@@ -89,7 +89,8 @@ class ChoiceAdmin(admin.ModelAdmin):
 
 
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('text', 'number', 'created', 'is_visible', 'collection_is_active', 'voting_is_active')
+    list_display = ('text', 'number', 'created', 'is_visible',
+                    'collection_is_active', 'voting_is_active', 'total_votes')
     list_filter = ['created', 'is_visible']
     search_fields = ['text']
 
