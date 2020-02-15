@@ -21,7 +21,7 @@ urlpatterns = [
     path('voter/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('voter/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password-reset-complete'),
 
-    path('voter/<username>/', views.VoterDetailView.as_view(), name='user-detail'),
+    path('voter/<username>/', views.VoterDetailView.as_view(), name='voter-detail'),
 
     path('<slug:slug>,<uuid:id>/', views.QuestionDetailView.as_view(), name='question-detail'),
     path('<slug:slug>,<uuid:id>/enter_vote/', views.EnterVoteView.as_view(), name='enter_vote'),

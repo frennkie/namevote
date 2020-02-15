@@ -199,25 +199,30 @@ class QuestionDetailView(generic.DetailView):
 class VoterDetailView(generic.DetailView):
     template_name = 'open_choice_polls/voter_detail.html'
     model = Voter
+    context_object_name = 'voter'
 
     slug_field = 'username'
     slug_url_kwarg = 'username'
 
     def get_object(self, queryset=None):
-        obj = get_object_or_404(User, username=self.kwargs.get('username'))
+        user_obj = get_object_or_404(User, username=self.kwargs.get('username'))
 
+        # admins can view all pages
+        if self.request.user.is_superuser:
+            return user_obj.voter
         # only owner can view his page
-        if self.request.user.username == obj.username:
-            return obj
+        elif self.request.user.username == user_obj.username:
+            return user_obj.voter
+        # otherwise redirect to 404 page
         else:
-            # redirect to 404 page
-            raise Http404("Poll does not exist")
+            raise Http404("Voter can not be found or accessed.")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        qs = Participation.objects.filter(Q(voter__user__id=self.request.user.id) & Q(is_allowed=True)) \
+        qs = Participation.objects.filter(Q(voter=self.object) & Q(is_allowed=True)) \
             .order_by('question__number')
+
         context['participation_list'] = qs
         return context
 

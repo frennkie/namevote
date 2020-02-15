@@ -34,7 +34,7 @@
                     <div class="card border-dark mb-3">
                         <div class="card-body">
                             <p class="text-danger">
-                                You are authenticated as <strong>{{ user.username }}</strong>, but are not authorized
+                                You are authenticated as <strong>{{ user.get_username }}</strong>, but are not authorized
                                 to access this page. Would you like to login to a different account?
                             </p>
                         </div>

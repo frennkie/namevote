@@ -5,18 +5,18 @@
 
         <div class="card border-secondary mb-3">
             <div class="card-header text-white bg-dark">
-                <h5>{{ user.username }}</h5>
+                <h5>{{ voter.user.get_username }}</h5>
             </div>
 
             <div class="card-body">
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
-                        {% trans "Id" %}: {{ user.id }}
+                        {% trans "Id" %}: {{ voter.id }}
                     </li>
 
                     <li class="list-group-item">
                         {% trans "Is Voter" %}:
-                        {% if user.voter.is_voter %}
+                        {% if voter.is_voter %}
                             <i class="fas fa-check-circle text-success"></i>
                         {% else %}
                             <i class="fas fa-times-circle text-danger"></i>
@@ -25,7 +25,7 @@
 
                     <li class="list-group-item">
                         {% trans "Is Enrolled" %}:
-                        {% if user.voter.is_enrolled %}
+                        {% if voter.is_enrolled %}
                             <i class="fas fa-check-circle text-success"></i>
                         {% else %}
                             <i class="fas fa-times-circle text-danger"></i>
@@ -33,7 +33,7 @@
                     </li>
 
                     <li class="list-group-item">
-                        {% trans "Enrollment Code" %}: {{ user.voter.enrollment_code }}
+                        {% trans "Enrollment Code" %}: {{ voter.enrollment_code }}
                     </li>
 
                 </ul>
