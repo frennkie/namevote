@@ -32,8 +32,9 @@
                                         {% percentage question choice as choice_percentage %}
 
                                         <div class="progress-title">
+                                            {{ forloop.counter }}.
                                             <div class="css-tooltip">
-                                                {{ forloop.counter }}. {{ choice.choice_text }} ({{ choice.votes }}
+                                                {{ choice.choice_text }} ({{ choice.votes }}
                                                 vote{{ choice.votes|pluralize }})
                                                 <span class="css-tooltiptext">{{ choice_percentage|floatformat:2 }}%</span>
                                             </div>
@@ -73,8 +74,9 @@
                                     {% percentage question choice as choice_percentage %}
 
                                     <div class="progress-title">
+                                        {{ forloop.counter }}.
                                         <div class="css-tooltip">
-                                            {{ forloop.counter }}. {{ choice.choice_text }} ({{ choice.votes }}
+                                            {{ choice.choice_text }} ({{ choice.votes }}
                                             vote{{ choice.votes|pluralize }})
                                             <span class="css-tooltiptext">{{ choice_percentage|floatformat:2 }}%</span>
                                         </div>
