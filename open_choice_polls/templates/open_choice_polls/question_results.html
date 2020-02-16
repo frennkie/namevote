@@ -27,15 +27,34 @@
                         {% if question.voting_is_active %}
                             {% if question.show_voting_results %}
 
-                                <div class="charts">
+                                <div class="rounded">
                                     {% for choice in choices_by_votes %}
-                                        <h5>{% percentage question choice as choice_percentage %}
-                                            {{ choice.choice_text }} ({{ choice.votes }}
-                                            vote{{ choice.votes|pluralize }})</h5>
-                                        <div class="charts__chart chart--lg"
-                                             data-percent="{{ choice_percentage|floatformat:2 }}%"
-                                             style="width: {{ choice_percentage|floatformat:2 }}%"></div>
-                                        <br>
+                                        {% percentage question choice as choice_percentage %}
+
+                                        <div class="progress-title">
+                                            <div class="css-tooltip">
+                                                {{ forloop.counter }}. {{ choice.choice_text }} ({{ choice.votes }}
+                                                vote{{ choice.votes|pluralize }})
+                                                <span class="css-tooltiptext">{{ choice_percentage|floatformat:2 }}%</span>
+                                            </div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            {% if choice_percentage < 5 %}
+                                                <div class="progress-track">
+                                                    <div class="progress-fill"
+                                                         style="width: {{ choice_percentage|floatformat:2 }}%;">
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="progress-track">
+                                                    <div class="progress-fill"
+                                                         style="width: {{ choice_percentage|floatformat:2 }}%;">
+                                                        <span>&nbsp;&nbsp;{{ choice_percentage|floatformat:1 }}%&nbsp;</span>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
                                     {% empty %}
                                         <h5 class="text-danger">No Choices were available.</h5>
                                     {% endfor %}
@@ -80,7 +99,6 @@
                                 {% empty %}
                                     <h5 class="text-danger">No Choices were available.</h5>
                                 {% endfor %}
-
                             </div>
 
                         {% endif %}
