@@ -1,11 +1,9 @@
 import logging
-import re
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -13,8 +11,6 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.text import slugify
-from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from .exceptions import ParticipationNotAllowed, ParticipationAllVotesUsed, QuestionVoteNotActive
