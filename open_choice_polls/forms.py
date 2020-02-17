@@ -52,6 +52,15 @@ class SeLoginEnrollForm(forms.Form):
     next = forms.CharField(required=False, widget=forms.HiddenInput())
     form = forms.CharField(required=True, widget=forms.HiddenInput(), initial=FORM_NAME)
 
+    def clean_enrollment_code(self):
+        # remove duplicate spaces and strip space from start and end
+        data = self.cleaned_data['enrollment_code']
+        # PDPGN-8922-fnkcg
+        no_hypen = data.replace('-', '')
+        return "{}-{}-{}".format(no_hypen.replace('-', '')[0:5],  # PDPGN
+                                 no_hypen.replace('-', '')[5:9],  # 8922
+                                 no_hypen.replace('-', '')[9:14])  # fnkcg
+
 
 class SeLoginSignInAuthenticationForm(AuthenticationForm):
     """
