@@ -2,7 +2,6 @@ import re
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
-from django.contrib import messages
 from django.core.exceptions import MultipleObjectsReturned
 from django.utils.translation import gettext_lazy as _
 
@@ -147,8 +146,5 @@ class VoteForm(forms.ModelForm):
             self.instance.choice_set.get(pk=clean_choice)
         except Choice.DoesNotExist as err:
             raise forms.ValidationError("Not found: {} - {}".format(clean_choice, err))
-
-        # check that user is has not yet used up all votes
-        # if participation.votes_cast >= self.object.votes_per_session:
 
         return cleaned_data
