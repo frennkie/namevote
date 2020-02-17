@@ -132,12 +132,6 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="col text-danger">
-                {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-            </div>
-        </div>
-
         {% if question.voting_is_active and participation.votes_cast < question.votes_per_session %}
             {% include "open_choice_polls/question_snippet_vote.html" with question=question %}
         {% endif %}

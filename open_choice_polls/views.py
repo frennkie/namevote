@@ -25,8 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 def selogin_user(request, *args, **kwargs):
-    error_message = None
-
     if request.method == 'POST':
         next_ = request.POST.get('next')
         username = request.POST.get('username', None)
@@ -40,12 +38,10 @@ def selogin_user(request, *args, **kwargs):
 
     return render(request, 'open_choice_polls/voter_login_user.html', {
         'form': form,
-        'error_message': error_message,
     })
 
 
 def selogin(request, username=None, *args, **kwargs):
-    error_message = None
     form_sign_in = None
     form_enroll = None
 
@@ -78,13 +74,13 @@ def selogin(request, username=None, *args, **kwargs):
                     else:
                         return redirect('open_choice_polls:question-list')
                 else:
-                    error_message = "Account is not yet enrolled. Please enroll first!"
+                    messages.error(request, "Account is not yet enrolled. Please enroll first!")
                     form_enroll = SeLoginEnrollForm(initial={'username': username,
                                                              'next': next_})
                     form_sign_in = None
 
             else:
-                error_message = "Sign in failed. Invalid username or password! Try another password again."
+                messages.error(request, "Sign in failed. Invalid username or password! Try another password again.")
 
         elif request.POST.get('form') == SeLoginEnrollForm.FORM_NAME:
             logger.debug("enrollment...")
@@ -105,23 +101,19 @@ def selogin(request, username=None, *args, **kwargs):
                     first()
 
                 if not voter_obj:
-                    error_message = "not found"
-
+                    messages.error(request, "Enrollment Code not found: {}".format(enrollment_code))
                     return render(request, 'open_choice_polls/voter_login.html', {
                         'username': None,
                         'form_sign_in': SeLoginSignInForm(initial={'next': next_}),
-                        'form_enroll': SeLoginEnrollForm(initial={'next': next_}),
-                        'error_message': error_message,
+                        'form_enroll': SeLoginEnrollForm(initial={'next': next_})
                     })
 
                 if voter_obj.is_enrolled:
-                    error_message = "already enrolled"
-
+                    messages.error(request, "Enrollment Code already enrolled: {}".format(enrollment_code))
                     return render(request, 'open_choice_polls/voter_login.html', {
                         'username': None,
                         'form_sign_in': SeLoginSignInForm(initial={'next': next_}),
-                        'form_enroll': SeLoginEnrollForm(initial={'next': next_}),
-                        'error_message': error_message,
+                        'form_enroll': SeLoginEnrollForm(initial={'next': next_})
                     })
 
                 username = voter_obj.user.username
@@ -153,15 +145,22 @@ def selogin(request, username=None, *args, **kwargs):
 
     else:
         next_ = request.GET.get('next')
+        enrollment_code = request.GET.get('enrollment_code')
+
+        # also check to for 'c' as enrollment_code
+        enrollment_code_short = request.GET.get('c')
+        if enrollment_code_short:
+            enrollment_code = enrollment_code_short
+
         form_sign_in = SeLoginSignInForm(initial={'username': username, 'next': next_})
-        form_enroll = SeLoginEnrollForm(initial={'username': username, 'next': next_})
+        form_enroll = SeLoginEnrollForm(initial={'username': username,
+                                                 'enrollment_code': enrollment_code,
+                                                 'next': next_})
 
     return render(request, 'open_choice_polls/voter_login.html', {
         'username': username,
         'form_sign_in': form_sign_in,
-        'form_enroll': form_enroll,
-        'error_message': error_message,
-
+        'form_enroll': form_enroll
     })
 
 

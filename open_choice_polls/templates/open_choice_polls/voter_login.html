@@ -12,22 +12,6 @@
     <div class="container">
 
         {#       START Error#}
-        {% if error_message %}
-            <div class="row">
-                <div class="col">
-                    {% if successful_enrollment %}
-                        <div class="card border-success mb-3">
-                            <div class="card-body">{{ error_message }}</div>
-                        </div>
-                    {% else %}
-                        <div class="card border-danger mb-3">
-                            <div class="card-body">{{ error_message }}</div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-
         {% if user.is_authenticated and not successful_enrollment %}
             <div class="row">
                 <div class="col">
@@ -99,7 +83,9 @@
                                         <div class="col-sm-9">
                                             <input type="text" class="form-control" required id="id_enrollment_code"
                                                    placeholder="e.g. ABCDE-2345-abcde" autofocus
-                                                   name="enrollment_code">
+                                                   name="enrollment_code"
+                                                    {% if form_enroll.enrollment_code.value %}
+                                                   value="{{ form_enroll.enrollment_code.value }}" {% endif %}>
                                         </div>
                                         <div class="text-danger">{{ form_enroll.enrollment_code.errors }}</div>
                                     </div>
