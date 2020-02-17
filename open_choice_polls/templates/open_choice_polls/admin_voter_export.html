@@ -67,6 +67,14 @@
             font-size: 10pt;
         }
 
+        div.enrollment_code {
+            text-align: left;
+            padding: 5px;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
         p.my_centered {
             text-align: center;
             padding: 2px;
@@ -115,10 +123,11 @@
                 <tr>
                     <td class="left_td">
                         <div class="my_left">
-                            <b>{{ entry.enrollment_code }}<br></b>
-                            User: <b>{{ entry.user }}</b><br>
-                            Use Until:
-                            {{ entry.enrollment_code_valid_until|date:"SHORT_DATE_FORMAT" }}
+                            <small class="text-muted">Enrollment Code:<br></small>
+                            <div class="enrollment_code">{{ entry.enrollment_code }}<br></div>
+                            {# User: <b>{{ entry.user }}</b><br>#}
+                            <small class="text-muted">
+                                Use Until: {{ entry.enrollment_code_valid_until|date:"SHORT_DATE_FORMAT" }}</small>
                         </div>
                     </td>
 
