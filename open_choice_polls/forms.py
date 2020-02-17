@@ -56,10 +56,10 @@ class SeLoginEnrollForm(forms.Form):
         # remove duplicate spaces and strip space from start and end
         data = self.cleaned_data['enrollment_code']
         # PDPGN-8922-fnkcg
-        no_hypen = data.replace('-', '')
-        return "{}-{}-{}".format(no_hypen.replace('-', '')[0:5],  # PDPGN
-                                 no_hypen.replace('-', '')[5:9],  # 8922
-                                 no_hypen.replace('-', '')[9:14])  # fnkcg
+        data_no_hyphen = data.replace('-', '')
+        return "{}-{}-{}".format(data_no_hyphen[0:5],  # PDPGN
+                                 data_no_hyphen[5:9],  # 8922
+                                 data_no_hyphen[9:14])  # fnkcg
 
 
 class SeLoginSignInAuthenticationForm(AuthenticationForm):
