@@ -133,22 +133,19 @@ def selogin(request, username=None, *args, **kwargs):
                     user.voter.is_enrolled = True
                     user.set_password(new_pw)
                     user.save()
-                    message = 'Enrollment successful of user: {}\n' \
-                              'Password has been changed. If you close your browser or delete your ' \
-                              'cookies then you will need the new password to re-enable your voting ' \
-                              'privileges. The new password is: {}'.format(username, new_pw)
+
+                    messages.success(request, 'Enrollment of user: {}'.format(username))
+                    messages.warning(request, 'Password has been changed. If you close your browser or delete your '
+                                              'cookies then you will need the new password to re-enable your voting '
+                                              'privileges.')
+                    messages.info(request, 'The new password is: {}'.format(new_pw))
 
                     login(request, user)
 
-                    qs = Participation.objects.filter(Q(voter__user__id=user.id) & Q(is_allowed=True)) \
-                        .order_by('question__number')
-
-                    return render(request, 'open_choice_polls/voter_detail.html', {
-                        'message': message,
-                        'successful_enrollment': True,
-                        'participation_list': qs.all()
-                    })
+                    return HttpResponseRedirect(reverse('open_choice_polls:voter-detail',
+                                                        kwargs={'username': username}))
                 else:
+                    messages.error("hm.. couldn't authenticate you.. this should have worked! :-/")
                     raise Exception("hm.. couldn't authenticate you.. this should have worked! :-/")
 
         else:
