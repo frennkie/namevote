@@ -2,8 +2,8 @@
 {% load i18n static %}
 
 {% block title %}
-    {# Translators: Title on Sign In / Enroll Page #}
-    {% trans "Sign In / Enroll" as title %}
+    {# Translators: Title on Enroll / Sign In Page #}
+    {% trans "Enroll / Sign In" as title %}
     {{ title }}
 {% endblock %}
 
@@ -34,7 +34,8 @@
                     <div class="card border-dark mb-3">
                         <div class="card-body">
                             <p class="text-danger">
-                                You are authenticated as <strong>{{ user.get_username }}</strong>, but are not authorized
+                                You are authenticated as <strong>{{ user.get_username }}</strong>, but are not
+                                authorized
                                 to access this page. Would you like to login to a different account?
                             </p>
                         </div>
@@ -80,12 +81,53 @@
             <div class="row">
                 <div class="col">
 
+                    {% if form_enroll %}
+                        <div class="card border-dark mb-3">
+
+                            <div class="card-header bg-warning">
+                                <h5>Enroll</h5>
+                            </div>
+
+                            <div class="card-body">
+
+                                <form action="{% url 'open_choice_polls:se-login' %}" method="post" id="login-form">
+                                    {% csrf_token %}
+
+                                    <div class="form-group row">
+                                        <label for="id_enrollment_code"
+                                               class="col-sm-3 col-form-label">{{ form_enroll.enrollment_code.label }}</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" required id="id_enrollment_code"
+                                                   placeholder="e.g. ABCDE-2345-abcde" autofocus
+                                                   name="enrollment_code">
+                                        </div>
+                                        <div class="text-danger">{{ form_enroll.enrollment_code.errors }}</div>
+                                    </div>
+
+                                    {% for hidden_field in form_enroll.hidden_fields %}
+                                        {{ hidden_field }}
+                                    {% endfor %}
+
+                                    <button type="submit" class="btn btn-warning float-right">Enroll</button>
+                                </form>
+
+                            </div>
+                        </div>
+                    {% endif %}
+
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+
 
                     {% if form_sign_in %}
                         <div class="card border-dark mb-3">
 
                             <div class="card-header text-white bg-primary">
-                                <h5>Sign In</h5>
+                                <h5>Sign In (if you enrolled earlier and have a user and password)</h5>
                             </div>
                             <div class="card-body">
 
@@ -138,46 +180,6 @@
                             </div>
                         </div>
                     {% endif %}
-
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-
-                    {% if form_enroll %}
-                        <div class="card border-dark mb-3">
-
-                            <div class="card-header bg-warning">
-                                <h5>Enroll</h5>
-                            </div>
-
-                            <div class="card-body">
-
-                                <form action="{% url 'open_choice_polls:se-login' %}" method="post" id="login-form">
-                                    {% csrf_token %}
-
-                                    <div class="form-group row">
-                                        <label for="id_enrollment_code"
-                                               class="col-sm-3 col-form-label">{{ form_enroll.enrollment_code.label }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" class="form-control" required id="id_enrollment_code"
-                                                   placeholder="e.g. ABCDE-2345-abcde"
-                                                   name="enrollment_code">
-                                        </div>
-                                        <div class="text-danger">{{ form_enroll.enrollment_code.errors }}</div>
-                                    </div>
-
-                                    {% for hidden_field in form_enroll.hidden_fields %}
-                                        {{ hidden_field }}
-                                    {% endfor %}
-
-                                    <button type="submit" class="btn btn-warning float-right">Enroll</button>
-                                </form>
-
-                            </div>
-                        </div>
-                    {% endif %}
-
 
                 </div>
             </div>
