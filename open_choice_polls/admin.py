@@ -198,7 +198,7 @@ class VoterAdmin(admin.ModelAdmin):
                            'enrollment_code_valid_until']}),
     ]
 
-    actions = ["export_codes_to_html"]
+    actions = ["export_codes_for_print", "export_codes_for_email"]
 
     # def get_actions(self, request):
     #     actions = super().get_actions(request)
@@ -209,12 +209,19 @@ class VoterAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_voter=True)
 
-    def export_codes_to_html(self, request, queryset):
+    def export_codes_for_print(self, request, queryset):
         _ = queryset.update(enrollment_code_is_distributed=True)
-        response = TemplateResponse(request, 'open_choice_polls/admin_voter_export.html', {'entries': queryset})
+        response = TemplateResponse(request, 'open_choice_polls/admin_voter_export_print.html', {'entries': queryset})
         return response
 
-    export_codes_to_html.short_description = _("Export selected Voters to HTML and set distributed")
+    export_codes_for_print.short_description = _("Export selected Voters for printing and set distributed")
+
+    def export_codes_for_email(self, request, queryset):
+        _ = queryset.update(enrollment_code_is_distributed=True)
+        response = TemplateResponse(request, 'open_choice_polls/admin_voter_export_email.html', {'entries': queryset})
+        return response
+
+    export_codes_for_email.short_description = _("Export selected Voters for emailing and set distributed")
 
     inlines = (ParticipationInline,)
 

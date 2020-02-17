@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Voters</title>
+
+    {% load static %}
+
+    <style>
+        @media media {
+            @page {
+                size: A4;
+            }
+
+            div.row > div {
+                display: inline-block;
+            }
+
+            div.row {
+                display: block;
+            }
+        }
+
+        table.report-container {
+            page-break-after: always;
+            font-family: Verdana, Tahoma, sans-serif;
+        }
+
+        thead.report-header {
+            display: table-header-group;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-size: 9pt;
+        }
+
+        div.my_centered {
+            text-align: center;
+            padding: 2px;
+            font-family: Verdana, Tahoma, sans-serif;
+            font-size: 10pt;
+        }
+
+        div.my_left {
+            text-align: left;
+            padding: 2px;
+            {#font-family: Verdana, Tahoma, sans-serif;#}
+            font-family: Consolas, sans-serif;
+            font-size: 10pt;
+        }
+
+
+    </style>
+
+</head>
+<body role="document">
+
+<div class="container-fluid">
+
+    {% if entries %}
+        <table class="report-container">
+            <thead class="report-header">
+            <tr>
+                <th class="report-header-cell">
+                    <div class="my_centered">Links</div>
+                    <hr>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in entries %}
+                <tr>
+                    <td>
+                        <div class="my_left">
+                            {% with q="?c=" %}
+                                {% with c=entry.enrollment_code %}
+                                    {% if request.is_secure %}
+                                        {% with s="https://" %}
+                                            {% with h=request.get_host %}
+                                                <a href="
+                                                        {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}">
+                                                    {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}</a>
+                                            {% endwith %}
+                                        {% endwith %}
+                                    {% else %}
+                                        {% with s="http://" %}
+                                            {% with h=request.get_host %}
+                                                <a href="
+                                                        {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}">
+                                                    {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}</a>
+                                            {% endwith %}
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endwith %}
+                        </div>
+                    </td>
+                </tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h2>No codes selected.</h2>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
