@@ -87,7 +87,7 @@ def selogin(request, username=None, *args, **kwargs):
                 error_message = "Sign in failed. Invalid username or password! Try another password again."
 
         elif request.POST.get('form') == SeLoginEnrollForm.FORM_NAME:
-            print("enrollment...")
+            logger.debug("enrollment...")
 
             form_enroll = SeLoginEnrollForm(request.POST)
             form_enroll.is_valid()
@@ -98,7 +98,7 @@ def selogin(request, username=None, *args, **kwargs):
                 username = form_enroll.cleaned_data.get('username')
 
             if not username:
-                print("looking up username from enrollment_code")
+                logger.debug("looking up username from enrollment_code")
 
                 voter_obj = Voter.objects.filter(is_voter=True). \
                     filter(enrollment_code=enrollment_code). \
