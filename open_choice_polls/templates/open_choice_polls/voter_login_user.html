@@ -36,16 +36,12 @@
                             {% endfor %}
                         {% endif %}
 
-
                         {% if user.is_authenticated %}
                             <p class="errornote">
-
                                 You are authenticated as {{ username }}, but are not authorized to
                                 access this page. Would you like to login to a different account?
-
                             </p>
                         {% endif %}
-
 
                         <form action="{% url 'open_choice_polls:se-login-user' %}" method="post">
                             {% csrf_token %}

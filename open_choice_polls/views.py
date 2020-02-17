@@ -1,7 +1,7 @@
 import logging
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -113,6 +113,11 @@ def selogin(request, username=None, *args, **kwargs):
                     })
 
                 username = voter_obj.user.username
+
+                # if already signed in as somebody else - sign out
+                if request.user.is_authenticated:
+                    logger.warning("user is already authenticated as {} - signing out!".format(request.user))
+                    logout(request)
 
                 # try to authenticate
                 user = authenticate(username=username, password=enrollment_code)
