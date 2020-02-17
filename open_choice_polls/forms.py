@@ -53,9 +53,8 @@ class SeLoginEnrollForm(forms.Form):
     form = forms.CharField(required=True, widget=forms.HiddenInput(), initial=FORM_NAME)
 
     def clean_enrollment_code(self):
-        # remove duplicate spaces and strip space from start and end
+        # the hyphens are optional - so both will work: PDPGN-8922-fnkcg and PDPGN8922fnkcg
         data = self.cleaned_data['enrollment_code']
-        # PDPGN-8922-fnkcg
         data_no_hyphen = data.replace('-', '')
         return "{}-{}-{}".format(data_no_hyphen[0:5],  # PDPGN
                                  data_no_hyphen[5:9],  # 8922
