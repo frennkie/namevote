@@ -1,55 +1,20 @@
 import re
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned
 from django.utils.translation import gettext_lazy as _
 
 from .models import Choice, Question
 
 
-class SeLoginUserForm(forms.ModelForm):
-    """
-    Sign In / Enroll Login - User Form
-    """
-
-    username = forms.CharField(required=True, max_length=100, label=False,
-                               widget=forms.TextInput(
-                                   attrs={'placeholder': 'Username: e.g. anon12345',
-                                          'class': 'form-control',
-                                          'autofocus': 'autofocus'}))
-
-    class Meta:
-        model = User
-        fields = ['username']
-
-
-class SeLoginSignInForm(forms.Form):
-    """
-    Sign In / Enroll Login - Sign In Form
-    """
-    FORM_NAME = 'sign-in-form'
-
-    username = forms.CharField(label=_("Username"), label_suffix="", required=True, max_length=100,
-                               widget=forms.TextInput(attrs={'placeholder': 'e.g. anon12345'}))
-
+class SignInForm(forms.Form):
+    username = forms.CharField(label=_("Username"), label_suffix="", required=True, max_length=100)
     password = forms.CharField(label=_("Password"), label_suffix="", strip=False)
-
     next = forms.CharField(required=False, widget=forms.HiddenInput())
-    form = forms.CharField(required=True, widget=forms.HiddenInput(), initial=FORM_NAME)
 
 
-class SeLoginEnrollForm(forms.Form):
-    """
-    Sign In / Enroll Login - Enroll Form
-    """
-    FORM_NAME = 'enroll-form'
-
-    username = forms.CharField(label=_("Username"), label_suffix="", required=False, widget=forms.HiddenInput())
+class EnrollForm(forms.Form):
     enrollment_code = forms.CharField(label=_("Code"), label_suffix="")
-
     next = forms.CharField(required=False, widget=forms.HiddenInput())
-    form = forms.CharField(required=True, widget=forms.HiddenInput(), initial=FORM_NAME)
 
     def clean_enrollment_code(self):
         # the hyphens are optional - so both will work: PDPGN-8922-fnkcg and PDPGN8922fnkcg
@@ -58,23 +23,6 @@ class SeLoginEnrollForm(forms.Form):
         return "{}-{}-{}".format(data_no_hyphen[0:5],  # PDPGN
                                  data_no_hyphen[5:9],  # 8922
                                  data_no_hyphen[9:14])  # fnkcg
-
-
-class SeLoginSignInAuthenticationForm(AuthenticationForm):
-    """
-    Inherited
-    """
-
-    username = forms.HiddenInput()
-    password = forms.CharField(
-        label=_("Password"),
-        strip=False,
-        widget=forms.PasswordInput,
-    )
-
-    class Meta:
-        model = User
-        fields = ['password']
 
 
 class ChoiceForm(forms.ModelForm):

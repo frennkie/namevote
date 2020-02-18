@@ -77,16 +77,16 @@
                                         {% with s="https://" %}
                                             {% with h=request.get_host %}
                                                 <a href="
-                                                        {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}">
-                                                    {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}</a>
+                                                        {{ s }}{{ h }}{% url 'open_choice_polls:voter-enroll' %}{{ q }}{{ c }}">
+                                                    {{ s }}{{ h }}{% url 'open_choice_polls:voter-enroll' %}{{ q }}{{ c }}</a>
                                             {% endwith %}
                                         {% endwith %}
                                     {% else %}
                                         {% with s="http://" %}
                                             {% with h=request.get_host %}
                                                 <a href="
-                                                        {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}">
-                                                    {{ s }}{{ h }}{% url 'open_choice_polls:se-login' %}{{ q }}{{ c }}</a>
+                                                        {{ s }}{{ h }}{% url 'open_choice_polls:voter-enroll' %}{{ q }}{{ c }}">
+                                                    {{ s }}{{ h }}{% url 'open_choice_polls:voter-enroll' %}{{ q }}{{ c }}</a>
                                             {% endwith %}
                                         {% endwith %}
                                     {% endif %}
