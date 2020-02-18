@@ -85,6 +85,7 @@ class Voter(models.Model):
 
     @classmethod
     def create_voter(cls, amount=1, code_valid_timedelta_days=None, question_id=None):
+        """ creates **upto** `amount` voters - duplicate random ids will not create a new voter"""
         if amount < 1:
             raise NotImplementedError("create at least 1 Voter!")
 
@@ -307,6 +308,10 @@ class Question(models.Model):
         for choice in Choice.approved.filter(question=self.id):
             total += choice.votes
         return total
+
+    @property
+    def allowed_voters(self):
+        return self.participation_set.filter(is_allowed=True).count()
 
 
 class Participation(models.Model):

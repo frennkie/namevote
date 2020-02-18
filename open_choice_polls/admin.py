@@ -89,7 +89,7 @@ class ChoiceAdmin(admin.ModelAdmin):
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('text', 'number', 'created', 'is_visible',
-                    'collection_is_active', 'voting_is_active', 'total_votes')
+                    'collection_is_active', 'voting_is_active', 'total_votes', 'allowed_voters')
     list_filter = ['created', 'is_visible']
     search_fields = ['text']
 
@@ -123,6 +123,7 @@ class QuestionAdmin(admin.ModelAdmin):
                                'voting_duration',
                                'total_choices',
                                'total_approved_choices',
+                               'total_allowed_voters',
                                'total_votes'],
                     'classes': ['collapse']}),
     ]
@@ -132,7 +133,8 @@ class QuestionAdmin(admin.ModelAdmin):
                        'voting_is_active', 'voting_is_in_past', 'voting_is_in_future',
                        'voting_duration',
                        'total_choices', 'total_approved_choices',
-                       'total_votes')
+                       'total_votes',
+                       'allowed_voters')
 
     actions = ['generate_1_voter', 'generate_3_voter', 'generate_25_voter']
 
