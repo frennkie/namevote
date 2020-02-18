@@ -134,7 +134,7 @@ class QuestionAdmin(admin.ModelAdmin):
                        'total_choices', 'total_approved_choices',
                        'total_votes')
 
-    actions = ["generate_1_voter", 'generate_25_voter']
+    actions = ['generate_1_voter', 'generate_3_voter', 'generate_25_voter']
 
     # inlines = (ChoiceInline, ParticipationInline,)
     inlines = (ChoiceInline,)
@@ -152,28 +152,35 @@ class QuestionAdmin(admin.ModelAdmin):
                                      obj.text))
         super(QuestionAdmin, self).save_model(request, obj, form, change)
 
-    def generate_1_voter(self, request, queryset):
-        res = Voter.create_voter(1, 30)
-        if res:
-            user_obj = res[0]
-            self.message_user(request, "successfully generated 1 user: {}".format(user_obj))
-
-            for q in queryset.all():
-                Participation.objects.create(voter=user_obj.voter, question=q, is_allowed=True)
-                self.message_user(request, "added new user to: {}".format(q))
-
-    generate_1_voter.short_description = _("Create 1 Voter and assign to selected Questions")
-
-    def generate_25_voter(self, request, queryset):
-        res = Voter.create_voter(25, 30)
-        if res:
-            user_objs = [x.username for x in res]
-            # lst = ",".join(user_objs)
-            self.message_user(request, "successfully generated 25 user")
-
+    def generate_n_voter(self, request, queryset, n=1, days=30):
+        user_objs = Voter.create_voter(n, 30)
+        if user_objs:
+            usernames = [x.username for x in user_objs]
+            if n == 1:
+                self.message_user(request, "successfully generated 1 user: {}".format(n))
+            elif n <= 3:
+                self.message_user(request, "successfully generated {} users: {}".format(len(usernames),
+                                                                                        ",".join(usernames)))
+            else:
+                self.message_user(request, "successfully generated {} user(s)".format(n))
             for user_obj in user_objs:
                 for q in queryset.all():
                     Participation.objects.create(voter=user_obj.voter, question=q, is_allowed=True)
+                    if n <= 3:
+                        self.message_user(request, "added new user to: {}".format(q))
+
+    def generate_1_voter(self, request, queryset):
+        self.generate_n_voter(request, queryset)
+
+    generate_1_voter.short_description = _("Create 1 Voter and assign to selected Questions")
+
+    def generate_3_voter(self, request, queryset):
+        self.generate_n_voter(request, queryset, 3)
+
+    generate_3_voter.short_description = _("Create 3 Voters and assign to selected Questions")
+
+    def generate_25_voter(self, request, queryset):
+        self.generate_n_voter(request, queryset, 25)
 
     generate_25_voter.short_description = _("Create 25 Voters and assign to selected Questions")
 

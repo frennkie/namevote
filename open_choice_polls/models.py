@@ -190,7 +190,7 @@ class Question(models.Model):
 
     # REPR and TO STRING METHOD
     def __repr__(self):
-        return "<{0}: {1}".format(
+        return "<{0}: {1}>".format(
             self.__class__.__name__,
             self.number_text)
 
