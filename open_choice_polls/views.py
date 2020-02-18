@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
-from django.http import HttpResponseRedirect, Http404
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -134,9 +134,8 @@ def selogin(request, username=None, *args, **kwargs):
                     messages.info(request, 'The new password is: {}'.format(new_pw))
 
                     login(request, user)
+                    return redirect('open_choice_polls:voter-detail', username=username)
 
-                    return HttpResponseRedirect(reverse('open_choice_polls:voter-detail',
-                                                        kwargs={'username': username}))
                 else:
                     messages.error("hm.. couldn't authenticate you.. this should have worked! :-/")
                     raise Exception("hm.. couldn't authenticate you.. this should have worked! :-/")
@@ -213,8 +212,7 @@ class QuestionAddChoiceView(generic.UpdateView):
         self.object.choice_set.create(choice_text=form.cleaned_data.get('choice_text'), votes=0)
         messages.success(self.request, 'Suggestion was added successfully!')
 
-        return HttpResponseRedirect(reverse('open_choice_polls:choices',
-                                            kwargs={'slug': self.object.slug, 'id': self.object.id}))
+        return redirect('open_choice_polls:choices', slug=self.object.slug, id=self.object.id)
 
     def form_invalid(self, form):
         messages.error(self.request, 'Input validation failed. See below for details.')
@@ -326,8 +324,7 @@ class QuestionEnterVoteView(LoginRequiredMixin, generic.UpdateView):
 
         messages.success(self.request, 'Vote successful!')
 
-        return HttpResponseRedirect(reverse('open_choice_polls:results',
-                                            kwargs={'slug': self.object.slug, 'id': self.object.id}))
+        return redirect('open_choice_polls:results', slug=self.object.slug, id=self.object.id)
 
     def form_invalid(self, form):
         messages.error(self.request, 'Input validation failed. See below for details.')
