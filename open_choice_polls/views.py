@@ -11,157 +11,129 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import urlencode
 from django.views import generic
 
 from .exceptions import ParticipationNotAllowed, ParticipationAllVotesUsed, QuestionVoteNotActive
-from .forms import ChoiceForm, SeLoginUserForm, SeLoginSignInForm, SeLoginEnrollForm, VoteForm
+from .forms import ChoiceForm, SignInForm, EnrollForm, VoteForm
 from .models import Choice, Participation, Question, Voter
 
 logger = logging.getLogger(__name__)
 
 
-def selogin_user(request, *args, **kwargs):
-    if request.method == 'POST':
-        next_ = request.POST.get('next')
-        username = request.POST.get('username', None)
-        if username:
-            return redirect('open_choice_polls:se-login-username', username=username)
-    else:
-        next_ = request.GET.get('next')
+class EnrollFormView(generic.FormView):
+    template_name = "open_choice_polls/voter_enroll.html"
+    form_class = EnrollForm
 
-    form = SeLoginUserForm(initial={'next': next_})
-    form.is_valid()
-
-    return render(request, 'open_choice_polls/voter_login_user.html', {
-        'form': form,
-    })
-
-
-def selogin(request, username=None, *args, **kwargs):
-    form_sign_in = None
-    form_enroll = None
-
-    if request.method == 'POST':
-        next_ = request.POST.get('next')
-
-        if request.POST.get('form') == SeLoginSignInForm.FORM_NAME:
-            form_sign_in = SeLoginSignInForm(request.POST)
-            form_sign_in.is_valid()
-
-            if not username:
-                username = form_sign_in.cleaned_data.get('username')
-            password = form_sign_in.cleaned_data.get('password')
-
-            user = authenticate(username=username, password=password)
-            if user is not None:
-
-                if user.is_superuser:
-                    login(request, user)
-                    if next_:
-                        return redirect(next_)
-                    else:
-                        return redirect('open_choice_polls:question-list')
-
-                if user.voter.is_enrolled:
-                    login(request, user)
-
-                    if next_:
-                        return redirect(next_)
-                    else:
-                        return redirect('open_choice_polls:question-list')
-                else:
-                    messages.error(request, "Account is not yet enrolled. Please enroll first!")
-                    form_enroll = SeLoginEnrollForm(initial={'username': username,
-                                                             'next': next_})
-                    form_sign_in = None
-
-            else:
-                messages.error(request, "Sign in failed. Invalid username or password! Try another password again.")
-
-        elif request.POST.get('form') == SeLoginEnrollForm.FORM_NAME:
-            logger.debug("enrollment...")
-
-            form_enroll = SeLoginEnrollForm(request.POST)
-            form_enroll.is_valid()
-
-            enrollment_code = form_enroll.cleaned_data.get('enrollment_code')
-
-            if not username:
-                username = form_enroll.cleaned_data.get('username')
-
-            if not username:
-                logger.debug("looking up username from enrollment_code")
-
-                voter_obj = Voter.objects.filter(is_voter=True). \
-                    filter(enrollment_code=enrollment_code). \
-                    first()
-
-                if not voter_obj:
-                    messages.error(request, "Enrollment Code not found: {}".format(enrollment_code))
-                    return render(request, 'open_choice_polls/voter_login.html', {
-                        'username': None,
-                        'form_sign_in': SeLoginSignInForm(initial={'next': next_}),
-                        'form_enroll': SeLoginEnrollForm(initial={'next': next_})
-                    })
-
-                if voter_obj.is_enrolled:
-                    messages.error(request, "Enrollment Code already enrolled: {}".format(enrollment_code))
-                    return render(request, 'open_choice_polls/voter_login.html', {
-                        'username': None,
-                        'form_sign_in': SeLoginSignInForm(initial={'next': next_}),
-                        'form_enroll': SeLoginEnrollForm(initial={'next': next_})
-                    })
-
-                username = voter_obj.user.username
-
-                # if already signed in as somebody else - sign out
-                if request.user.is_authenticated:
-                    logger.warning("user is already authenticated as {} - signing out!".format(request.user))
-                    logout(request)
-
-                # try to authenticate
-                user = authenticate(username=username, password=enrollment_code)
-                if user is not None:
-                    new_pw = Voter.create_new_password()
-                    user.voter.is_enrolled = True
-                    user.set_password(new_pw)
-                    user.save()
-
-                    messages.success(request, 'Enrollment of user: {}'.format(username))
-                    messages.warning(request, 'Password has been changed. If you close your browser or delete your '
-                                              'cookies then you will need the new password to re-enable your voting '
-                                              'privileges.')
-                    messages.info(request, 'The new password is: {}'.format(new_pw))
-
-                    login(request, user)
-                    return redirect('open_choice_polls:voter-detail', username=username)
-
-                else:
-                    messages.error("hm.. couldn't authenticate you.. this should have worked! :-/")
-                    raise Exception("hm.. couldn't authenticate you.. this should have worked! :-/")
-
-        else:
-            raise Exception("form fu")
-
-    else:
-        next_ = request.GET.get('next')
-        enrollment_code = request.GET.get('enrollment_code')
-
+    def get_initial(self):
+        enrollment_code = self.request.GET.get('enrollment_code')
         # also check to for 'c' as enrollment_code
-        enrollment_code_short = request.GET.get('c')
+        enrollment_code_short = self.request.GET.get('c')
         if enrollment_code_short:
             enrollment_code = enrollment_code_short
 
-        form_sign_in = SeLoginSignInForm(initial={'username': username, 'next': next_})
-        form_enroll = SeLoginEnrollForm(initial={'username': username,
-                                                 'enrollment_code': enrollment_code,
-                                                 'next': next_})
+        next_ = self.request.GET.get('next')
 
-    return render(request, 'open_choice_polls/voter_login.html', {
-        'username': username,
-        'form_sign_in': form_sign_in,
-        'form_enroll': form_enroll
-    })
+        return {'enrollment_code': enrollment_code, 'next': next_}
+
+    def form_valid(self, form):
+        next_ = form.cleaned_data.get('next')
+        enrollment_code = form.cleaned_data.get('enrollment_code')
+
+        logger.debug("enrollment... looking up username from enrollment_code")
+
+        voter_obj = Voter.objects.filter(is_voter=True). \
+            filter(enrollment_code=enrollment_code). \
+            first()
+
+        if not voter_obj:
+            messages.error(self.request, "Enrollment Code not found: {}".format(enrollment_code))
+            messages.info(self.request, "Please check spelling and try again below.")
+            return redirect('open_choice_polls:voter-enroll')
+
+        if voter_obj.is_enrolled:
+            messages.error(self.request, "Enrollment Code already enrolled: {}".format(enrollment_code))
+            messages.info(self.request, "Please sign in below.")
+            return redirect('open_choice_polls:voter-sign-in')
+
+        username = voter_obj.user.username
+
+        # try to authenticate
+        user = authenticate(username=username, password=enrollment_code)
+        if user is not None:
+
+            # if already signed in as somebody else - sign out
+            if self.request.user.is_authenticated:
+                logger.warning("user is already authenticated as {} - signing out!".format(self.request.user))
+                logout(self.request)
+
+            new_pw = Voter.create_new_password()
+            user.voter.is_enrolled = True
+            user.set_password(new_pw)
+            user.save()
+
+            messages.success(self.request, 'User enrolled: {}!'.format(username))
+            messages.warning(self.request, 'Password has been changed. If you close your browser or delete your '
+                                           'cookies then you will need the new password to re-enable your voting '
+                                           'privileges.')
+            messages.info(self.request, 'The new password is: {}'.format(new_pw))
+
+            login(self.request, user)
+
+            if next_:
+                return redirect(next_)
+            else:
+                return redirect('open_choice_polls:voter-detail', username=username)
+
+        else:
+            messages.error(self.request, "hm.. couldn't authenticate you.. this should have worked! :-/")
+            raise Exception("hm.. couldn't authenticate you.. this should have worked! :-/")
+
+
+class SignInFormView(generic.FormView):
+    template_name = "open_choice_polls/voter_sign_in.html"
+    form_class = SignInForm
+
+    def get_initial(self):
+        username = self.request.GET.get('username')
+        next_ = self.request.GET.get('next')
+
+        return {'username': username, 'next': next_}
+
+    def form_valid(self, form):
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+        next_ = form.cleaned_data.get('next')
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+
+            if user.is_superuser:
+                login(self.request, user)
+                if next_:
+                    return redirect(next_)
+                else:
+                    return redirect('open_choice_polls:question-list')
+
+            if user.voter.is_enrolled:
+                login(self.request, user)
+
+                if next_:
+                    return redirect(next_)
+                else:
+                    return redirect('open_choice_polls:voter-detail', username=username)
+            else:
+                messages.error(self.request, "Account is not yet enrolled. Please first enroll below.")
+
+                get_args_str = urlencode({'enrollment_code': password})
+                response = redirect('open_choice_polls:voter-enroll')
+                response['Location'] += '?{}'.format(get_args_str)
+                return response
+
+        else:
+            messages.error(self.request, "Sign in failed. Invalid username or password!")
+            messages.info(self.request, "Try another password again.")
+            return redirect('open_choice_polls:voter-sign-in')
 
 
 class QuestionListView(generic.ListView):

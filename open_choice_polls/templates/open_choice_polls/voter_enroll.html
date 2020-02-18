@@ -1,0 +1,115 @@
+{% extends "open_choice_polls/base.html" %}
+{% load i18n static %}
+
+{% block title %}
+    {# Translators: Title on Enroll In Page #}
+    {% trans "Enroll" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        {#       START Error#}
+        {% if user.is_authenticated %}
+            <div class="row">
+                <div class="col">
+                    <div class="card border-dark mb-3">
+                        <div class="card-body">
+                            <p class="text-danger">
+                                You are authenticated as <strong>{{ user.get_username }}</strong>, but are not
+                                authorized
+                                to access this page. Would you like to login to a different account?
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if form.errors or form.non_field_errors %}
+            <div class="row">
+                <div class="col">
+                    <div class="card border-secondary mb-3">
+
+                        <div class="card-body">
+
+                            Errors (if any..) #TODO
+
+                            {% if form.errors and not form.non_field_errors %}
+                                <p class="errornote">
+                                    {% if form.errors.items|length == 1 %}
+                                        {% trans "Please correct the error below." %}{% else %}
+                                        {% trans "Please correct the errors below." %}{% endif %}
+                                </p>
+                                {#                            {{ form.errors }}#}
+                            {% endif %}
+
+                            {% if form.non_field_errors %}
+                                {% for error in form.non_field_errors %}
+                                    <p class="errornote">
+                                        {{ error }}
+                                    </p>
+                                {% endfor %}
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {#       END Error#}
+
+        <div class="row">
+            <div class="col">
+
+                <div class="card border-dark mb-3">
+
+                    <div class="card-header bg-warning">
+                        <h5>Enroll</h5>
+                    </div>
+
+                    <div class="card-body">
+
+                        <form action="{% url 'open_choice_polls:voter-enroll' %}" method="post" id="login-form">
+                            {% csrf_token %}
+
+                            <div class="form-group row">
+                                <label for="id_enrollment_code"
+                                       class="col-sm-3 col-form-label">{{ form.enrollment_code.label }}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" required id="id_enrollment_code"
+                                           placeholder="e.g. ABCDE-2345-abcde" autofocus
+                                           name="enrollment_code"
+                                            {% if form.enrollment_code.value %}
+                                           value="{{ form.enrollment_code.value }}" {% endif %}>
+                                </div>
+                                <div class="text-danger">{{ form.enrollment_code.errors }}</div>
+                            </div>
+
+                            {% for hidden_field in form.hidden_fields %}
+                                {{ hidden_field }}
+                            {% endfor %}
+
+                            <button type="submit" class="btn btn-warning float-right">Enroll</button>
+                        </form>
+
+                    </div>
+
+                    <div class="card-footer">
+                        {% if form.next.value %}
+                            <div class="text-muted">If you already enrolled earlier then go here to
+                                <a href="{% url 'open_choice_polls:voter-sign-in' %}?next={{ form.next.value }}">sign
+                                    in</a></div>
+                        {% else %}
+                            <div class="text-muted">If you already enrolled earlier then go here to
+                                <a href="{% url 'open_choice_polls:voter-sign-in' %}">sign in</a></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

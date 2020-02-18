@@ -178,7 +178,7 @@ LOCALE_PATHS = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static')
 
-LOGIN_URL = '/voter/selogin/'
+LOGIN_URL = '/voter/enroll/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
