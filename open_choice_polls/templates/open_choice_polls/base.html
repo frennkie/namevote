@@ -47,12 +47,12 @@
                     <a class="nav-link" href="{% url 'open_choice_polls:voter-detail' username=user.get_username %}">
                         <i class="fas fa-user-circle"></i> {{ user.get_username }}</a></li>
                 <li class="nav-item">
-                    <a class="nav-link " href="{% url 'open_choice_polls:logout' %}">
+                    <a class="nav-link " href="{% url 'open_choice_polls:voter-logout' %}">
                         <i class="fas fa-sign-out-alt"></i> Sign out</a></li>
 
             {% else %}
                 <li class="nav-item">
-                    <a class="nav-link " href="{% url 'open_choice_polls:se-login' %}">
+                    <a class="nav-link " href="{% url 'open_choice_polls:voter-enroll' %}">
                         <i class="fas fa-user-edit"></i> Enroll / Sign In</a></li>
             {% endif %}
 
