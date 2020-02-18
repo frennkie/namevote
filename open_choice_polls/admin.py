@@ -123,8 +123,8 @@ class QuestionAdmin(admin.ModelAdmin):
                                'voting_duration',
                                'total_choices',
                                'total_approved_choices',
-                               'total_allowed_voters',
-                               'total_votes'],
+                               'total_votes'
+                               'allowed_voters',],
                     'classes': ['collapse']}),
     ]
     readonly_fields = ('number', 'slug', 'created',
