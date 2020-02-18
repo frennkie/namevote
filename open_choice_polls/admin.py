@@ -163,11 +163,11 @@ class QuestionAdmin(admin.ModelAdmin):
                                                                                         ",".join(usernames)))
             else:
                 self.message_user(request, "successfully generated {} user(s)".format(n))
-            for user_obj in user_objs:
+            for idx, user_obj in enumerate(user_objs):
                 for q in queryset.all():
                     Participation.objects.create(voter=user_obj.voter, question=q, is_allowed=True)
-                    if n <= 3:
-                        self.message_user(request, "added new user to: {}".format(q))
+                    if idx == len(user_objs) - 1:
+                        self.message_user(request, "added new user(s) to: {}".format(q))
 
     def generate_1_voter(self, request, queryset):
         self.generate_n_voter(request, queryset)
