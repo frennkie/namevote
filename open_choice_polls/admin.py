@@ -138,7 +138,6 @@ class QuestionAdmin(admin.ModelAdmin):
 
     actions = ['generate_1_voter', 'generate_3_voter', 'generate_25_voter']
 
-    # inlines = (ChoiceInline, ParticipationInline,)
     inlines = (ChoiceInline,)
 
     def save_model(self, request, obj, form, change):
@@ -155,7 +154,7 @@ class QuestionAdmin(admin.ModelAdmin):
         super(QuestionAdmin, self).save_model(request, obj, form, change)
 
     def generate_n_voter(self, request, queryset, n=1, days=30):
-        user_objs = Voter.create_voter(n, 30)
+        user_objs = Voter.create_voter(n, days)
         if user_objs:
             usernames = [x.username for x in user_objs]
             if n == 1:
