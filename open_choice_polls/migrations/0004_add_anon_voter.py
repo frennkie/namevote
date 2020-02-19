@@ -2,9 +2,7 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
-import django_extensions.db.fields
 
 
 class Migration(migrations.Migration):
@@ -22,13 +20,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='choice',
             name='created',
-            field=django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, default=django.utils.timezone.now, verbose_name='created'),
-            preserve_default=False,
+            field=models.DateTimeField(auto_now_add=True, verbose_name='date created'),
         ),
         migrations.AddField(
             model_name='choice',
             name='modified',
-            field=django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified'),
+            field=models.DateTimeField(auto_now=True, verbose_name='date modified'),
         ),
         migrations.CreateModel(
             name='Voter',
