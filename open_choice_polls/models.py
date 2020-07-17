@@ -16,7 +16,6 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from django_extensions.db.models import TimeStampedModel
 
 from open_choice_polls import settings
 
@@ -349,7 +348,7 @@ class RejectedChoiceManager(models.Manager):
         return super().get_queryset().filter(review_status=Choice.REJECTED)
 
 
-class Choice(TimeStampedModel, models.Model):
+class Choice(models.Model):
     # CHOICES
     APPROVED = 'APPROVED'
     OPEN = 'OPEN'
@@ -364,6 +363,9 @@ class Choice(TimeStampedModel, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+    created = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
+    modified = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
 
     choice_text = models.CharField(max_length=200)
     choice_slug = models.SlugField(blank=True, editable=False)
